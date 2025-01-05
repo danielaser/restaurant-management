@@ -25,7 +25,7 @@ public class Client {
     private List<Reservation> reservations;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
-    private List<Order> orders;
+    private List<OrderRestaurant> orders;
 
     public Client(Long idClient, String clientName, String email, String phoneNumber, String address) {
         this.idClient = idClient;

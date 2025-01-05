@@ -9,7 +9,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-public class Order {
+public class OrderRestaurant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,13 +23,13 @@ public class Order {
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
 
-    public Order(Long idOrder, Client client, List<OrderItem> orderItems, Double totalAmount) {
+    public OrderRestaurant(Long idOrder, Client client, List<OrderItem> orderItems, Double totalAmount) {
         this.idOrder = idOrder;
         this.client = client;
         this.orderItems = orderItems;
         this.totalAmount = totalAmount;
     }
 
-    public Order() {
+    public OrderRestaurant() {
     }
 }
