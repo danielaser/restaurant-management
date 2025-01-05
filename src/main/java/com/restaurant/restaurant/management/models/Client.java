@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class Client {
     private String email;
     private String phoneNumber;
     private String address;
-    private LocalDateTime registrationDate;
+    private LocalDate registrationDate;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Reservation> reservations;
@@ -27,16 +28,15 @@ public class Client {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<OrderRestaurant> orders;
 
-    public Client(Long idClient, String clientName, String email, String phoneNumber, String address) {
+    public Client(Long idClient, String clientName, String email, String phoneNumber, String address, LocalDate registrationDate) {
         this.idClient = idClient;
         this.clientName = clientName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
-        this.registrationDate = LocalDateTime.now();
+        this.registrationDate = registrationDate;
     }
 
     public Client() {
-        this.registrationDate = LocalDateTime.now();
     }
 }

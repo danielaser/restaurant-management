@@ -19,6 +19,7 @@ public class ClientMapper {
         client.setClientName(dto.getClientName());
         client.setEmail(dto.getEmail());
         client.setPhoneNumber(dto.getPhoneNumber());
+        client.setRegistrationDate(dto.getRegistrationDate());
         return client;
     }
 }
