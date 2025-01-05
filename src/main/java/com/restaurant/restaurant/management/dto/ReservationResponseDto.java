@@ -2,14 +2,15 @@ package com.restaurant.restaurant.management.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDateTime;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
 
 public class ReservationResponseDto {
     private Long idReservation;
-    private LocalDateTime dateTime;
+    private LocalDate dateTime;
     private Integer numberOfPeople;
     private String clientName;
 }

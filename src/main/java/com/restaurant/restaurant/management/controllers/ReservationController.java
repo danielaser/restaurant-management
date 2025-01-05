@@ -2,7 +2,9 @@ package com.restaurant.restaurant.management.controllers;
 
 import com.restaurant.restaurant.management.dto.ReservationResponseDto;
 import com.restaurant.restaurant.management.dtoConverter.ReservationMapper;
+import com.restaurant.restaurant.management.models.Client;
 import com.restaurant.restaurant.management.models.Reservation;
+import com.restaurant.restaurant.management.repositories.ClientRepository;
 import com.restaurant.restaurant.management.services.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,16 +19,24 @@ import java.util.stream.Collectors;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final ClientRepository clientRepository;
 
     @Autowired
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService, ClientRepository clientRepository) {
         this.reservationService = reservationService;
+        this.clientRepository = clientRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<ReservationResponseDto> addReservation(@RequestBody ReservationResponseDto reservationResponseDto) {
+    @PostMapping("/{clientName}")
+    public ResponseEntity<ReservationResponseDto> addReservation(@RequestBody ReservationResponseDto reservationResponseDto, @PathVariable String clientName) {
+        Optional<Client> clientOptional = reservationService.getClientByName(clientName);
+        if (!clientOptional.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
         Reservation reservation = ReservationMapper.toEntity(reservationResponseDto);
-        Reservation addedReservation = reservationService.addReservation(reservation);
+        reservation.setClient(clientOptional.get());
+
+        Reservation addedReservation = reservationService.addReservation(reservation, clientOptional.get().getIdClient());
         return ResponseEntity.ok(ReservationMapper.toDto(addedReservation));
     }
 
@@ -48,15 +58,12 @@ public class ReservationController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ReservationResponseDto> updateReservation(@PathVariable Long id, @RequestBody ReservationResponseDto reservationResponseDto) {
-        try {
-            Reservation reservation = ReservationMapper.toEntity(reservationResponseDto);
-            reservation.setIdReservation(id);
-            Reservation updatedReservation = reservationService.updateReservation(id, reservation);
-            return ResponseEntity.ok(ReservationMapper.toDto(updatedReservation));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Reservation reservation = ReservationMapper.toEntity(reservationResponseDto);
+        reservation.setIdReservation(id);
+        Reservation updatedReservation = reservationService.updateReservation(id, reservation);
+        return ResponseEntity.ok(ReservationMapper.toDto(updatedReservation));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {

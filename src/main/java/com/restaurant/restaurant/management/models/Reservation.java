@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -14,7 +14,7 @@ public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idReservation;
-    private LocalDateTime dateTime;
+    private LocalDate dateTime;
     private Integer numberOfPeople;
 
     @ManyToOne
@@ -22,7 +22,7 @@ public class Reservation {
     private Client client;
 
 
-    public Reservation(Long idReservation, LocalDateTime dateTime, Integer numberOfPeople, Client client) {
+    public Reservation(Long idReservation, LocalDate dateTime, Integer numberOfPeople, Client client) {
         this.idReservation = idReservation;
         this.dateTime = dateTime;
         this.numberOfPeople = numberOfPeople;

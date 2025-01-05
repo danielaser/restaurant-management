@@ -1,6 +1,7 @@
 package com.restaurant.restaurant.management.dtoConverter;
 
 import com.restaurant.restaurant.management.dto.ReservationResponseDto;
+import com.restaurant.restaurant.management.models.Client;
 import com.restaurant.restaurant.management.models.Reservation;
 
 public class ReservationMapper {
@@ -18,7 +19,6 @@ public class ReservationMapper {
         reservation.setIdReservation(dto.getIdReservation());
         reservation.setDateTime(dto.getDateTime());
         reservation.setNumberOfPeople(dto.getNumberOfPeople());
-        //  buscar el Client asociado al nombre en la bd
         return reservation;
     }
 }
