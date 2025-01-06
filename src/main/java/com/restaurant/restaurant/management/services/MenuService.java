@@ -3,6 +3,7 @@ package com.restaurant.restaurant.management.services;
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
 import com.restaurant.restaurant.management.repositories.ClientRepository;
+import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.MenuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,12 @@ import java.util.Optional;
 public class MenuService {
 
     private final MenuRepository menuRepository;
+    private final DishRepository dishRepository;
 
     @Autowired
-    public MenuService(MenuRepository menuRepository) {
+    public MenuService(MenuRepository menuRepository, DishRepository dishRepository) {
         this.menuRepository = menuRepository;
+        this.dishRepository = dishRepository;
     }
 
     public Menu addMenu(Menu menu) {
@@ -49,11 +52,28 @@ public class MenuService {
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
             dish.setMenu(menu);
-            menu.getDishes().add(dish);
+            Dish savedDish = dishRepository.save(dish);
+            menu.getDishes().add(savedDish);
             menuRepository.save(menu);
-            return dish;
+            return savedDish;
         }
         return null;
+    }
+
+    public List<Dish> getAllDishesFromMenu(Long idMenu) {
+        Optional<Menu> menuOpt = menuRepository.findById(idMenu);
+        return menuOpt.map(Menu::getDishes).orElse(List.of());
+    }
+
+    public Optional<Dish> getDishFromMenu(Long idMenu, Long idDish) {
+        Optional<Menu> menuOpt = menuRepository.findById(idMenu);
+        if (menuOpt.isPresent()) {
+            Menu menu = menuOpt.get();
+            return menu.getDishes().stream()
+                    .filter(dish -> dish.getIdDish().equals(idDish))
+                    .findFirst();
+        }
+        return Optional.empty();
     }
 
     public void removeDishFromMenu(Long idMenu, Long idDish) {

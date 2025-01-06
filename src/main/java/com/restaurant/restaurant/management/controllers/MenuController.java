@@ -1,6 +1,8 @@
 package com.restaurant.restaurant.management.controllers;
 
+import com.restaurant.restaurant.management.dto.DishResponseDto;
 import com.restaurant.restaurant.management.dto.MenuResponseDto;
+import com.restaurant.restaurant.management.dtoConverter.DishMapper;
 import com.restaurant.restaurant.management.dtoConverter.MenuMapper;
 import com.restaurant.restaurant.management.models.Menu;
 import com.restaurant.restaurant.management.models.Dish;
@@ -69,6 +71,26 @@ public class MenuController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/{idMenu}/dishes")
+    public ResponseEntity<List<DishResponseDto>> getAllDishesFromMenu(@PathVariable Long idMenu) {
+        List<Dish> dishes = menuService.getAllDishesFromMenu(idMenu);
+        if (!dishes.isEmpty()) {
+            List<DishResponseDto> response = dishes.stream()
+                    .map(DishMapper::toDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{idMenu}/dishes/{idDish}")
+    public ResponseEntity<DishResponseDto> getDishFromMenu(@PathVariable Long idMenu, @PathVariable Long idDish) {
+        return menuService.getDishFromMenu(idMenu, idDish)
+                .map(dish -> ResponseEntity.ok(DishMapper.toDto(dish)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
     @DeleteMapping("/{idMenu}/dishes/{idDish}")
     public ResponseEntity<Void> removeDishFromMenu(@PathVariable Long idMenu, @PathVariable Long idDish) {

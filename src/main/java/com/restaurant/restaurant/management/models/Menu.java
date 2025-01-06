@@ -1,8 +1,11 @@
 package com.restaurant.restaurant.management.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,8 +18,9 @@ public class Menu {
     private Long idMenu;
     private String menuName;
 
-    @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL)
-    private List<Dish> dishes;
+    @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Dish> dishes = new ArrayList<>();
 
     public Menu(Long idMenu, String menuName) {
         this.idMenu = idMenu;
