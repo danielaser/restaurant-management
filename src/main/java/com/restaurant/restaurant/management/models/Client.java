@@ -1,11 +1,11 @@
 package com.restaurant.restaurant.management.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -20,6 +20,7 @@ public class Client {
     private String email;
     private String phoneNumber;
     private String address;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate registrationDate;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)

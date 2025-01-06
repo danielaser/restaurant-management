@@ -5,6 +5,7 @@ import com.restaurant.restaurant.management.dtoConverter.ClientMapper;
 import com.restaurant.restaurant.management.models.Client;
 import com.restaurant.restaurant.management.services.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +24,16 @@ public class ClientController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addClient(@RequestBody ClientResponseDto clientResponseDto){
-        Client client = ClientMapper.toEntity(clientResponseDto);
-        clientService.addClient(client);
-        return ResponseEntity.ok("Cliente agregado exitosamente.");
+    public ResponseEntity<String> addClient(@RequestBody ClientResponseDto clientResponseDto) {
+        try {
+            Client client = ClientMapper.toEntity(clientResponseDto);
+            clientService.addClient(client);
+            return ResponseEntity.ok("Cliente agregado exitosamente.");
+        } catch (Exception e) {
+            e.printStackTrace(); // Esto imprimirá detalles en los logs
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al agregar el cliente: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
@@ -48,12 +55,18 @@ public class ClientController {
     @PutMapping("/{id}")
     public ResponseEntity<ClientResponseDto> updateClient(@PathVariable Long id, @RequestBody ClientResponseDto clientResponseDto) {
         try {
-            Client updated = ClientMapper.toEntity(clientResponseDto);
-            return ResponseEntity.ok(ClientMapper.toDto(updated));
+            Client client = ClientMapper.toEntity(clientResponseDto);
+            client.setIdClient(id);
+            Client updatedClient = clientService.updateClient(id, client);
+            return ResponseEntity.ok(ClientMapper.toDto(updatedClient));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id){

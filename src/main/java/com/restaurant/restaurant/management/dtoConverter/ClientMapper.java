@@ -10,15 +10,20 @@ public class ClientMapper {
         dto.setClientName(client.getClientName());
         dto.setEmail(client.getEmail());
         dto.setPhoneNumber(client.getPhoneNumber());
+        dto.setAddress(client.getAddress());
+        dto.setRegistrationDate(client.getRegistrationDate());
         return dto;
     }
 
     public static Client toEntity(ClientResponseDto dto) {
         Client client = new Client();
-        client.setIdClient(dto.getIdClient());
+        if (dto.getIdClient() != null) {
+            client.setIdClient(dto.getIdClient());
+        }
         client.setClientName(dto.getClientName());
         client.setEmail(dto.getEmail());
         client.setPhoneNumber(dto.getPhoneNumber());
+        client.setAddress(dto.getAddress());
         client.setRegistrationDate(dto.getRegistrationDate());
         return client;
     }

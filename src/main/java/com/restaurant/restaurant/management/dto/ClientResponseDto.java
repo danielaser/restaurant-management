@@ -13,6 +13,7 @@ public class ClientResponseDto {
     private String clientName;
     private String email;
     private String phoneNumber;
+    private String address;
     private LocalDate registrationDate;
 }
 
