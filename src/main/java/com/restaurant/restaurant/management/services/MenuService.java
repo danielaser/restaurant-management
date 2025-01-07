@@ -42,12 +42,10 @@ public class MenuService {
         return menuRepository.findById(id).map(existingMenu -> {
             existingMenu.setMenuName(menuUpdated.getMenuName());
             existingMenu.getDishes().clear();
-            if (menuUpdated.getDishes() != null) {
-                menuUpdated.getDishes().forEach(dish -> {
-                    dish.setMenu(existingMenu);
-                    existingMenu.getDishes().add(dish);
-                });
-            }
+            if (menuUpdated.getDishes() != null) menuUpdated.getDishes().forEach(dish -> {
+                dish.setMenu(existingMenu);
+                existingMenu.getDishes().add(dish);
+            });
             return menuRepository.save(existingMenu);
         }).orElseThrow(() -> new RuntimeException("El menu con id: " + id + " no pudo ser actualizado"));
     }
@@ -61,25 +59,21 @@ public class MenuService {
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
             dish.setMenu(menu);
-
-            AdminNotifier adminNotifier = new AdminNotifier();
-            dish.addObserver(adminNotifier);
-
-            DishHandler popularityHandler = new PopularityHandler();
-            DishHandler discountHandler = new DiscountHandler();
-
-            popularityHandler.setNextHandler(discountHandler);
-
-            popularityHandler.handle(dish, 120);
-
+            addPatterns(dish);
             Dish savedDish = dishRepository.save(dish);
-
             menu.getDishes().add(savedDish);
             menuRepository.save(menu);
-
             return savedDish;
-        }
-        return null;
+        } return null;
+    }
+
+    private static void addPatterns(Dish dish) {
+        AdminNotifier adminNotifier = new AdminNotifier();
+        dish.addObserver(adminNotifier);
+        DishHandler popularityHandler = new PopularityHandler();
+        DishHandler discountHandler = new DiscountHandler();
+        popularityHandler.setNextHandler(discountHandler);
+        popularityHandler.handle(dish, 120);
     }
 
     public List<Dish> getAllDishesFromMenu(Long idMenu) {
@@ -114,15 +108,20 @@ public class MenuService {
             Optional<Dish> dishOpt = menu.getDishes().stream()
                     .filter(d -> d.getIdDish().equals(idDish))
                     .findFirst();
+            Dish dish = getDishOpt(dishUpdated, dishOpt, menu);
+            if (dish != null) return dish;
+        }
+        return null;
+    }
 
-            if (dishOpt.isPresent()) {
-                Dish dish = dishOpt.get();
-                dish.setDishName(dishUpdated.getDishName());
-                dish.setPrice(dishUpdated.getPrice());
-                dish.setDescription(dishUpdated.getDescription());
-                menuRepository.save(menu);
-                return dish;
-            }
+    private Dish getDishOpt(Dish dishUpdated, Optional<Dish> dishOpt, Menu menu) {
+        if (dishOpt.isPresent()) {
+            Dish dish = dishOpt.get();
+            dish.setDishName(dishUpdated.getDishName());
+            dish.setPrice(dishUpdated.getPrice());
+            dish.setDescription(dishUpdated.getDescription());
+            menuRepository.save(menu);
+            return dish;
         }
         return null;
     }

@@ -18,9 +18,7 @@ public class ClientMapper {
 
     public static Client toEntity(ClientResponseDto dto) {
         Client client = new Client();
-        if (dto.getIdClient() != null) {
-            client.setIdClient(dto.getIdClient());
-        }
+        if (dto.getIdClient() != null) client.setIdClient(dto.getIdClient());
         client.setClientName(dto.getClientName());
         client.setEmail(dto.getEmail());
         client.setPhoneNumber(dto.getPhoneNumber());

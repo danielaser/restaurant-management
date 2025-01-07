@@ -9,10 +9,7 @@ public class PopularityHandler extends DishHandler {
             dish.setPopular(true);
             dish.setPrice(dish.getPrice() * 1.0573);
         }
-
-        if (nextHandler != null) {
-            nextHandler.handle(dish, timesOrdered);
-        }
+        if (nextHandler != null) nextHandler.handle(dish, timesOrdered);
     }
 }
 

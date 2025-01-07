@@ -50,9 +50,7 @@ public class MenuController {
     @PutMapping("/{id}")
     public ResponseEntity<Menu> updateMenu(@PathVariable Long id, @RequestBody Menu menuUpdated) {
         Menu updatedMenu = menuService.updateMenu(id, menuUpdated);
-        if (updatedMenu != null) {
-            return ResponseEntity.ok(updatedMenu);
-        }
+        if (updatedMenu != null) return ResponseEntity.ok(updatedMenu);
         return ResponseEntity.notFound().build();
     }
 
@@ -65,9 +63,7 @@ public class MenuController {
     @PostMapping("/{idMenu}/dishes")
     public ResponseEntity<Dish> addDishToMenu(@PathVariable Long idMenu, @RequestBody Dish dish) {
         Dish addedDish = menuService.addDishToMenu(idMenu, dish);
-        if (addedDish != null) {
-            return ResponseEntity.ok(addedDish);
-        }
+        if (addedDish != null) return ResponseEntity.ok(addedDish);
         return ResponseEntity.notFound().build();
     }
 
@@ -100,9 +96,7 @@ public class MenuController {
     @PutMapping("/{idMenu}/dishes/{idDish}")
     public ResponseEntity<Dish> updateDishInMenu(@PathVariable Long idMenu, @PathVariable Long idDish, @RequestBody Dish dishUpdated) {
         Dish updatedDish = menuService.updateDishInMenu(idMenu, idDish, dishUpdated);
-        if (updatedDish != null) {
-            return ResponseEntity.ok(updatedDish);
-        }
+        if (updatedDish != null) return ResponseEntity.ok(updatedDish);
         return ResponseEntity.notFound().build();
     }
 }

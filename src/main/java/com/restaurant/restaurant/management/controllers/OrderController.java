@@ -1,11 +1,8 @@
 package com.restaurant.restaurant.management.controllers;
 
-import com.restaurant.restaurant.management.dto.OrderItemResponseDto;
 import com.restaurant.restaurant.management.dto.OrderResponseDto;
-import com.restaurant.restaurant.management.dto.ReservationResponseDto;
 import com.restaurant.restaurant.management.dtoConverter.OrderItemMapper;
 import com.restaurant.restaurant.management.dtoConverter.OrderMapper;
-import com.restaurant.restaurant.management.dtoConverter.ReservationMapper;
 import com.restaurant.restaurant.management.models.*;
 import com.restaurant.restaurant.management.services.MenuService;
 import com.restaurant.restaurant.management.services.OrderService;
@@ -34,12 +31,9 @@ public class OrderController {
     @PostMapping("/{clientName}")
     public ResponseEntity<OrderResponseDto> addOrder(@RequestBody OrderResponseDto orderDto, @PathVariable String clientName) {
         Optional<Client> clientOptional = orderService.getClientByName(clientName);
-        if (!clientOptional.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
+        if (!clientOptional.isPresent()) return ResponseEntity.notFound().build();
         OrderRestaurant order = OrderMapper.toEntity(orderDto);
         order.setClient(clientOptional.get());
-
         OrderRestaurant addedOrder = orderService.addOrder(order, clientOptional.get().getIdClient());
         return ResponseEntity.ok(OrderMapper.toDto(addedOrder));
     }
@@ -78,55 +72,43 @@ public class OrderController {
     public ResponseEntity<?> addOrderItem(@PathVariable Long idOrder, @RequestBody OrderItem orderItem) {
         try {
             OrderItem addedItem = orderService.addItemToOrder(idOrder, orderItem);
-            if (addedItem != null) {
-                return ResponseEntity.ok(addedItem);
-            }
+            if (addedItem != null) return ResponseEntity.ok(addedItem);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El plato no existe o la orden no se encuentra.");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al agregar el item al pedido: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al agregar el item al pedido: " + e.getMessage());
         }
     }
 
     @GetMapping("/{idOrder}/orderItems/{idOrderItem}")
     public ResponseEntity<?> getOrderItem(@PathVariable Long idOrder, @PathVariable Long idOrderItem) {
         Optional<OrderItem> orderItemOpt = orderService.getOrderItemById(idOrderItem);
-        if (orderItemOpt.isPresent() && orderItemOpt.get().getOrder().getIdOrder().equals(idOrder)) {
+        if (orderItemOpt.isPresent() && orderItemOpt.get().getOrder().getIdOrder().equals(idOrder))
             return ResponseEntity.ok(OrderItemMapper.toDto(orderItemOpt.get()));
-        }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found or does not belong to the order.");
     }
 
     @PutMapping("/{idOrder}/orderItems/{idOrderItem}")
-    public ResponseEntity<?> updateOrderItem(
-            @PathVariable Long idOrder,
-            @PathVariable Long idOrderItem,
-            @RequestBody OrderItem orderItem) {
+    public ResponseEntity<?> updateOrderItem(@PathVariable Long idOrder, @PathVariable Long idOrderItem, @RequestBody OrderItem orderItem) {
         try {
-            if (!orderService.getOrder(idOrder).isPresent()) {
+            if (!orderService.getOrder(idOrder).isPresent())
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found.");
-            }
             orderItem.setOrder(orderService.getOrder(idOrder).get());
             OrderItem updatedItem = orderService.updateOrderItem(idOrderItem, orderItem);
             return ResponseEntity.ok(OrderItemMapper.toDto(updatedItem));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating the OrderItem: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating the OrderItem: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/{idOrder}/orderItems/{idOrderItem}")
     public ResponseEntity<?> deleteOrderItem(@PathVariable Long idOrder, @PathVariable Long idOrderItem) {
         try {
-            if (!orderService.getOrder(idOrder).isPresent()) {
+            if (!orderService.getOrder(idOrder).isPresent())
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found.");
-            }
             orderService.deleteOrderItem(idOrderItem);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting the OrderItem: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting the OrderItem: " + e.getMessage());
         }
     }
-
 }

@@ -9,9 +9,6 @@ public class DiscountHandler extends DishHandler {
             dish.setPrice(dish.getPrice() * 0.9);
             System.out.println("Se ha aplicado un descuento al plato.");
         }
-
-        if (nextHandler != null) {
-            nextHandler.handle(dish, timesOrdered);
-        }
+        if (nextHandler != null) nextHandler.handle(dish, timesOrdered);
     }
 }

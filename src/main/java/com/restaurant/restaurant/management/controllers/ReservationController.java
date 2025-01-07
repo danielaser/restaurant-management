@@ -30,12 +30,9 @@ public class ReservationController {
     @PostMapping("/{clientName}")
     public ResponseEntity<ReservationResponseDto> addReservation(@RequestBody ReservationResponseDto reservationResponseDto, @PathVariable String clientName) {
         Optional<Client> clientOptional = reservationService.getClientByName(clientName);
-        if (!clientOptional.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
+        if (!clientOptional.isPresent()) return ResponseEntity.notFound().build();
         Reservation reservation = ReservationMapper.toEntity(reservationResponseDto);
         reservation.setClient(clientOptional.get());
-
         Reservation addedReservation = reservationService.addReservation(reservation, clientOptional.get().getIdClient());
         return ResponseEntity.ok(ReservationMapper.toDto(addedReservation));
     }
@@ -63,7 +60,6 @@ public class ReservationController {
         Reservation updatedReservation = reservationService.updateReservation(id, reservation);
         return ResponseEntity.ok(ReservationMapper.toDto(updatedReservation));
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {

@@ -28,11 +28,11 @@ public class ClientController {
         try {
             Client client = ClientMapper.toEntity(clientResponseDto);
             clientService.addClient(client);
-            return ResponseEntity.ok("Cliente agregado exitosamente.");
+            return ResponseEntity.ok("Cliente agregado exitosamente");
         } catch (Exception e) {
-            e.printStackTrace(); // Esto imprimirá detalles en los logs
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al agregar el cliente: " + e.getMessage());
+                    .body("Error al agregar el cliente: " + e.getMessage());
         }
     }
 
@@ -61,12 +61,8 @@ public class ClientController {
             return ResponseEntity.ok(ClientMapper.toDto(updatedClient));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id){
