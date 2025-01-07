@@ -63,13 +63,8 @@ public class ReservationService {
 
     public double applyPricingStrategy(Reservation reservation) {
         PricingStrategy pricingStrategy;
-
-        if (reservation.getClient().isVIP()) {
-            pricingStrategy = new VIPPricingStrategy();
-        } else {
-            pricingStrategy = new RegularPricingStrategy();
-        }
-
+        if (reservation.getClient().isVIP()) pricingStrategy = new VIPPricingStrategy();
+        else pricingStrategy = new RegularPricingStrategy();
         return pricingStrategy.calculatePrice(reservation);
     }
 }
