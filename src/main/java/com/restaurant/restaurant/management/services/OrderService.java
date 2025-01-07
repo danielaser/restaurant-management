@@ -93,6 +93,31 @@ public class OrderService {
         return null;
     }
 
+    public Optional<OrderItem> getOrderItemById(Long idOrderItem) {
+        return orderItemRepository.findById(idOrderItem);
+    }
+
+    public OrderItem updateOrderItem(Long idOrderItem, OrderItem updatedOrderItem) {
+        return orderItemRepository.findById(idOrderItem).map(existingOrderItem -> {
+            Optional<Dish> dishOpt = dishRepository.findById(updatedOrderItem.getIdDish());
+            if (dishOpt.isPresent()) {
+                existingOrderItem.setDish(dishOpt.get());
+            } else {
+                throw new RuntimeException("Dish not found with id: " + updatedOrderItem.getIdDish());
+            }
+            existingOrderItem.setQuantity(updatedOrderItem.getQuantity());
+            return orderItemRepository.save(existingOrderItem);
+        }).orElseThrow(() -> new RuntimeException("OrderItem with id: " + idOrderItem + " not found"));
+    }
+
+    public void deleteOrderItem(Long idOrderItem) {
+        if (orderItemRepository.existsById(idOrderItem)) {
+            orderItemRepository.deleteById(idOrderItem);
+        } else {
+            throw new RuntimeException("OrderItem with id: " + idOrderItem + " not found");
+        }
+    }
+
 
 
 }

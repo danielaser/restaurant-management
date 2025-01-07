@@ -95,7 +95,45 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/{idOrder}/orderItems/{idOrderItem}")
+    public ResponseEntity<?> getOrderItem(@PathVariable Long idOrder, @PathVariable Long idOrderItem) {
+        Optional<OrderItem> orderItemOpt = orderService.getOrderItemById(idOrderItem);
+        if (orderItemOpt.isPresent() && orderItemOpt.get().getOrder().getIdOrder().equals(idOrder)) {
+            return ResponseEntity.ok(OrderItemMapper.toDto(orderItemOpt.get()));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found or does not belong to the order.");
+    }
 
+    @PutMapping("/{idOrder}/orderItems/{idOrderItem}")
+    public ResponseEntity<?> updateOrderItem(
+            @PathVariable Long idOrder,
+            @PathVariable Long idOrderItem,
+            @RequestBody OrderItem orderItem) {
+        try {
+            if (!orderService.getOrder(idOrder).isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found.");
+            }
+            orderItem.setOrder(orderService.getOrder(idOrder).get());
+            OrderItem updatedItem = orderService.updateOrderItem(idOrderItem, orderItem);
+            return ResponseEntity.ok(OrderItemMapper.toDto(updatedItem));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating the OrderItem: " + e.getMessage());
+        }
+    }
 
+    @DeleteMapping("/{idOrder}/orderItems/{idOrderItem}")
+    public ResponseEntity<?> deleteOrderItem(@PathVariable Long idOrder, @PathVariable Long idOrderItem) {
+        try {
+            if (!orderService.getOrder(idOrder).isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found.");
+            }
+            orderService.deleteOrderItem(idOrderItem);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting the OrderItem: " + e.getMessage());
+        }
+    }
 
 }
