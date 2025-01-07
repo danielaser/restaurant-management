@@ -1,9 +1,11 @@
 package com.restaurant.restaurant.management.services;
 
+import com.restaurant.restaurant.management.chain.DiscountHandler;
+import com.restaurant.restaurant.management.chain.DishHandler;
+import com.restaurant.restaurant.management.chain.PopularityHandler;
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
-import com.restaurant.restaurant.management.models.OrderRestaurant;
-import com.restaurant.restaurant.management.repositories.ClientRepository;
+import com.restaurant.restaurant.management.observer.AdminNotifier;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.MenuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +61,22 @@ public class MenuService {
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
             dish.setMenu(menu);
+
+            AdminNotifier adminNotifier = new AdminNotifier();
+            dish.addObserver(adminNotifier);
+
+            DishHandler popularityHandler = new PopularityHandler();
+            DishHandler discountHandler = new DiscountHandler();
+
+            popularityHandler.setNextHandler(discountHandler);
+
+            popularityHandler.handle(dish, 120);
+
             Dish savedDish = dishRepository.save(dish);
+
             menu.getDishes().add(savedDish);
             menuRepository.save(menu);
+
             return savedDish;
         }
         return null;
@@ -111,5 +126,4 @@ public class MenuService {
         }
         return null;
     }
-
 }

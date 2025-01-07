@@ -10,6 +10,7 @@ public class DishMapper {
         dto.setDishName(dish.getDishName());
         dto.setPrice(dish.getPrice());
         dto.setDescription(dish.getDescription());
+        dto.setIsPopular(dish.isPopular());
         return dto;
     }
 
