@@ -30,13 +30,16 @@ public class Client {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<OrderRestaurant> orders;
 
-    public Client(Long idClient, String clientName, String email, String phoneNumber, String address, LocalDate registrationDate) {
+    private boolean isVIP;
+
+    public Client(Long idClient, String clientName, String email, String phoneNumber, String address, LocalDate registrationDate, boolean isVIP) {
         this.idClient = idClient;
         this.clientName = clientName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.registrationDate = registrationDate;
+        this.isVIP = isVIP;
     }
 
     public Client() {

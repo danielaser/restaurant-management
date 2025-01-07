@@ -12,7 +12,8 @@ public class ClientMapper {
         dto.setPhoneNumber(client.getPhoneNumber());
         dto.setAddress(client.getAddress());
         dto.setRegistrationDate(client.getRegistrationDate());
-        dto.setFrequentUser(client.isFrequentUser()); // Nuevo campo
+        dto.setFrequentUser(client.isFrequentUser());
+        dto.setVIP(client.isVIP());
         return dto;
     }
 
@@ -24,7 +25,8 @@ public class ClientMapper {
         client.setPhoneNumber(dto.getPhoneNumber());
         client.setAddress(dto.getAddress());
         client.setRegistrationDate(dto.getRegistrationDate());
-        client.setFrequentUser(dto.isFrequentUser()); // Nuevo campo
+        client.setFrequentUser(dto.isFrequentUser());
+        client.setVIP(dto.isVIP());
         return client;
     }
 }

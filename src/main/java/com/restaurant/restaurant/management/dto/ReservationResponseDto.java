@@ -13,4 +13,5 @@ public class ReservationResponseDto {
     private LocalDate dateTime;
     private Integer numberOfPeople;
     private String clientName;
+    private Double price;
 }

@@ -4,6 +4,9 @@ import com.restaurant.restaurant.management.models.Client;
 import com.restaurant.restaurant.management.models.Reservation;
 import com.restaurant.restaurant.management.repositories.ReservationRepository;
 import com.restaurant.restaurant.management.repositories.ClientRepository;
+import com.restaurant.restaurant.management.strategy.PricingStrategy;
+import com.restaurant.restaurant.management.strategy.RegularPricingStrategy;
+import com.restaurant.restaurant.management.strategy.VIPPricingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,5 +59,17 @@ public class ReservationService {
 
     public void deleteReservation(Long id) {
         reservationRepository.deleteById(id);
+    }
+
+    public double applyPricingStrategy(Reservation reservation) {
+        PricingStrategy pricingStrategy;
+
+        if (reservation.getClient().isVIP()) {
+            pricingStrategy = new VIPPricingStrategy();
+        } else {
+            pricingStrategy = new RegularPricingStrategy();
+        }
+
+        return pricingStrategy.calculatePrice(reservation);
     }
 }

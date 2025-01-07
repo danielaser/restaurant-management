@@ -21,11 +21,14 @@ public class Reservation {
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    public Reservation(Long idReservation, LocalDate dateTime, Integer numberOfPeople, Client client) {
+    private Double price;
+
+    public Reservation(Long idReservation, LocalDate dateTime, Integer numberOfPeople, Client client, Double price) {
         this.idReservation = idReservation;
         this.dateTime = dateTime;
         this.numberOfPeople = numberOfPeople;
         this.client = client;
+        this.price = price;
     }
 
     public Reservation() {

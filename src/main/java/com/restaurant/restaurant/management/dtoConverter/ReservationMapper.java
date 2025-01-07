@@ -11,6 +11,7 @@ public class ReservationMapper {
         dto.setDateTime(reservation.getDateTime());
         dto.setNumberOfPeople(reservation.getNumberOfPeople());
         dto.setClientName(reservation.getClient().getClientName());
+        dto.setPrice(reservation.getPrice());
         return dto;
     }
 
@@ -19,6 +20,7 @@ public class ReservationMapper {
         reservation.setIdReservation(dto.getIdReservation());
         reservation.setDateTime(dto.getDateTime());
         reservation.setNumberOfPeople(dto.getNumberOfPeople());
+        reservation.setPrice(dto.getPrice());
         return reservation;
     }
 }

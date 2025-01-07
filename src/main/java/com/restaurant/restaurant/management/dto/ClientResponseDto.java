@@ -16,6 +16,7 @@ public class ClientResponseDto {
     private String address;
     private LocalDate registrationDate;
     private boolean frequentUser;
+    private boolean isVIP;
 }
 
 
