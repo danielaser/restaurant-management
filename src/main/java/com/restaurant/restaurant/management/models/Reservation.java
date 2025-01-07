@@ -21,7 +21,6 @@ public class Reservation {
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-
     public Reservation(Long idReservation, LocalDate dateTime, Integer numberOfPeople, Client client) {
         this.idReservation = idReservation;
         this.dateTime = dateTime;

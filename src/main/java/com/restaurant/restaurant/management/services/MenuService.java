@@ -2,6 +2,7 @@ package com.restaurant.restaurant.management.services;
 
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
+import com.restaurant.restaurant.management.models.OrderRestaurant;
 import com.restaurant.restaurant.management.repositories.ClientRepository;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.MenuRepository;
@@ -38,7 +39,13 @@ public class MenuService {
     public Menu updateMenu(Long id, Menu menuUpdated) {
         return menuRepository.findById(id).map(existingMenu -> {
             existingMenu.setMenuName(menuUpdated.getMenuName());
-            existingMenu.setDishes(menuUpdated.getDishes());
+            existingMenu.getDishes().clear();
+            if (menuUpdated.getDishes() != null) {
+                menuUpdated.getDishes().forEach(dish -> {
+                    dish.setMenu(existingMenu);
+                    existingMenu.getDishes().add(dish);
+                });
+            }
             return menuRepository.save(existingMenu);
         }).orElseThrow(() -> new RuntimeException("El menu con id: " + id + " no pudo ser actualizado"));
     }

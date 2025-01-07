@@ -3,6 +3,7 @@ package com.restaurant.restaurant.management.dtoConverter;
 import com.restaurant.restaurant.management.dto.OrderResponseDto;
 import com.restaurant.restaurant.management.models.OrderRestaurant;
 
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class OrderMapper {
@@ -22,9 +23,12 @@ public class OrderMapper {
         OrderRestaurant order = new OrderRestaurant();
         order.setIdOrder(dto.getIdOrder());
         order.setTotalAmount(dto.getTotalAmount());
-        order.setOrderItems(dto.getOrderItems().stream()
+        order.setOrderItems(dto.getOrderItems() != null
+                ? dto.getOrderItems().stream()
                 .map(OrderItemMapper::toEntity)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList())
+                : new ArrayList<>());
         return order;
     }
+
 }

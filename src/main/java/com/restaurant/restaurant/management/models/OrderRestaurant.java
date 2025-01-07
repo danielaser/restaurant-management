@@ -15,21 +15,20 @@ public class OrderRestaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idOrder;
+    private Double totalAmount;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems = new ArrayList<>();
-
-    private Double totalAmount;
-
-    public OrderRestaurant(Long idOrder, Client client, List<OrderItem> orderItems, Double totalAmount) {
+    public OrderRestaurant(Long idOrder,  Double totalAmount, List<OrderItem> orderItems, Client client) {
         this.idOrder = idOrder;
-        this.client = client;
-        this.orderItems = orderItems;
         this.totalAmount = totalAmount;
+        this.orderItems = orderItems;
+        this.client = client;
     }
 
     public OrderRestaurant() {

@@ -64,12 +64,18 @@ public class OrderService {
 
     public OrderRestaurant updateOrder(Long id, OrderRestaurant orderUpdated) {
         return orderRepository.findById(id).map(existingOrder -> {
-            existingOrder.setClient(orderUpdated.getClient());
-            existingOrder.setOrderItems(orderUpdated.getOrderItems());
             existingOrder.setTotalAmount(orderUpdated.getTotalAmount());
+            existingOrder.getOrderItems().clear();
+            if (orderUpdated.getOrderItems() != null) {
+                orderUpdated.getOrderItems().forEach(item -> {
+                    item.setOrder(existingOrder);
+                    existingOrder.getOrderItems().add(item);
+                });
+            }
             return orderRepository.save(existingOrder);
         }).orElseThrow(() -> new RuntimeException("El pedido con id: " + id + " no pudo ser actualizado"));
     }
+
 
     public void deleteOrder(Long id) {
         orderRepository.deleteById(id);
