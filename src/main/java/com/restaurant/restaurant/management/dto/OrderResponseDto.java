@@ -12,7 +12,7 @@ public class OrderResponseDto {
     private Long idOrder;
     private Double totalAmount;
     private List<OrderItemResponseDto> orderItems;
-    private Long clientId;
+    private String clientName;
 }
 
 

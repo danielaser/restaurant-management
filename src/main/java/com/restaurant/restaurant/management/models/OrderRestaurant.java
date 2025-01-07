@@ -35,14 +35,4 @@ public class OrderRestaurant {
     public OrderRestaurant() {
     }
 
-    public void addOrderItem(OrderItem orderItem) {
-        this.orderItems.add(orderItem);
-        orderItem.setOrder(this);  // Establece la relación bidireccional
-    }
-
-
-//    public void removeOrderItem(OrderItem orderItem) {
-//        orderItems.remove(orderItem);
-//        orderItem.setOrderRestaurant(null);
-//    }
 }

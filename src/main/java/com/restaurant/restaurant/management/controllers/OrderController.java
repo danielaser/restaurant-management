@@ -2,11 +2,11 @@ package com.restaurant.restaurant.management.controllers;
 
 import com.restaurant.restaurant.management.dto.OrderItemResponseDto;
 import com.restaurant.restaurant.management.dto.OrderResponseDto;
+import com.restaurant.restaurant.management.dto.ReservationResponseDto;
 import com.restaurant.restaurant.management.dtoConverter.OrderItemMapper;
 import com.restaurant.restaurant.management.dtoConverter.OrderMapper;
-import com.restaurant.restaurant.management.models.Dish;
-import com.restaurant.restaurant.management.models.OrderRestaurant;
-import com.restaurant.restaurant.management.models.OrderItem;
+import com.restaurant.restaurant.management.dtoConverter.ReservationMapper;
+import com.restaurant.restaurant.management.models.*;
 import com.restaurant.restaurant.management.services.MenuService;
 import com.restaurant.restaurant.management.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +31,24 @@ public class OrderController {
         this.menuService = menuService;
     }
 
-    @PostMapping
-    public ResponseEntity<OrderResponseDto> addOrder(@RequestBody OrderResponseDto orderDto) {
-        OrderRestaurant orderRestaurant = OrderMapper.toEntity(orderDto);
-        OrderRestaurant newOrder = orderService.addOrder(orderRestaurant);
-        return ResponseEntity.ok(OrderMapper.toDto(newOrder));
+//    @PostMapping
+//    public ResponseEntity<OrderResponseDto> addOrder(@RequestBody OrderResponseDto orderDto) {
+//        OrderRestaurant orderRestaurant = OrderMapper.toEntity(orderDto);
+//        OrderRestaurant newOrder = orderService.addOrder(orderRestaurant);
+//        return ResponseEntity.ok(OrderMapper.toDto(newOrder));
+//    }
+
+    @PostMapping("/{clientName}")
+    public ResponseEntity<OrderResponseDto> addOrder(@RequestBody OrderResponseDto orderDto, @PathVariable String clientName) {
+        Optional<Client> clientOptional = orderService.getClientByName(clientName);
+        if (!clientOptional.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        OrderRestaurant order = OrderMapper.toEntity(orderDto);
+        order.setClient(clientOptional.get());
+
+        OrderRestaurant addedOrder = orderService.addOrder(order, clientOptional.get().getIdClient());
+        return ResponseEntity.ok(OrderMapper.toDto(addedOrder));
     }
 
     @GetMapping("/{id}")
@@ -69,12 +82,13 @@ public class OrderController {
 
 
     @PostMapping("/{idOrder}/items")
-    public ResponseEntity<OrderItem> addOrderItem(@PathVariable Long idOrder, @RequestBody OrderItem orderItem) {
-        OrderItem addedItem = orderService.addItemToOrder(idOrder, orderItem);
-        if (addedItem != null) {
-            return ResponseEntity.ok(addedItem);
+    public ResponseEntity<OrderItemResponseDto> addOrderItem(
+            @PathVariable Long idOrder, @RequestBody OrderItemResponseDto orderItemDto) {
+        try {
+            OrderItem addedItem = orderService.addItemToOrder(idOrder, OrderItemMapper.toEntity(orderItemDto));
+            return ResponseEntity.ok(OrderItemMapper.toDto(addedItem));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.notFound().build();
     }
-
 }

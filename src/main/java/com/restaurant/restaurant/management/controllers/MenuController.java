@@ -48,13 +48,12 @@ public class MenuController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MenuResponseDto> updateMenu(@PathVariable Long id, @RequestBody Menu menuUpdated) {
-        try {
-            Menu updatedMenu = menuService.updateMenu(id, menuUpdated);
-            return ResponseEntity.ok(MenuMapper.toDto(updatedMenu));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Menu> updateMenu(@PathVariable Long id, @RequestBody Menu menuUpdated) {
+        Menu updatedMenu = menuService.updateMenu(id, menuUpdated);
+        if (updatedMenu != null) {
+            return ResponseEntity.ok(updatedMenu);
         }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

@@ -29,13 +29,29 @@ public class OrderService {
         this.orderItemRepository = orderItemRepository;
     }
 
-    public OrderRestaurant addOrder(OrderRestaurant orderRestaurant) {
-        Optional<Client> clientOpt = clientRepository.findById(orderRestaurant.getClient().getIdClient());
-        if (clientOpt.isPresent()) {
-            orderRestaurant.setClient(clientOpt.get());
+//    public OrderRestaurant addOrder(OrderRestaurant orderRestaurant) {
+//        Optional<Client> clientOpt = clientRepository.findById(orderRestaurant.getClient().getIdClient());
+//        if (clientOpt.isPresent()) {
+//            orderRestaurant.setClient(clientOpt.get());
+//            return orderRepository.save(orderRestaurant);
+//        }
+//        throw new RuntimeException("Cliente no encontrado");
+//    }
+
+    public Optional<Client> getClientByName(String clientName) {
+        return clientRepository.findAll().stream()
+                .filter(client -> client.getClientName().equalsIgnoreCase(clientName))
+                .findFirst();
+    }
+
+    public OrderRestaurant addOrder(OrderRestaurant orderRestaurant, Long clientId) {
+        Optional<Client> client = clientRepository.findById(clientId);
+        if (client.isPresent()) {
+            orderRestaurant.setClient(client.get());
             return orderRepository.save(orderRestaurant);
+        } else {
+            throw new RuntimeException("El cliente con ID: " + clientId + " no fue encontrado");
         }
-        throw new RuntimeException("Cliente no encontrado");
     }
 
     public List<OrderRestaurant> getAllOrders() {
@@ -60,29 +76,22 @@ public class OrderService {
     }
 
     public OrderItem addItemToOrder(Long idOrder, OrderItem orderItem) {
-        // Buscar la Order por id
-        Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
-        if (!orderOpt.isPresent()) {
-            throw new RuntimeException("Order not found with id: " + idOrder);
+        OrderRestaurant order = orderRepository.findById(idOrder)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + idOrder));
+
+        Dish dish = dishRepository.findById(orderItem.getDish().getIdDish())
+                .orElseThrow(() -> new RuntimeException("Dish not found with id: " + orderItem.getDish().getIdDish()));
+
+        if (dish.getMenu() == null) {
+            throw new RuntimeException("Dish is not associated with any menu");
         }
 
-        // Buscar el Dish por id
-        Optional<Dish> dishOpt = dishRepository.findById(orderItem.getDish().getIdDish());
-        if (!dishOpt.isPresent()) {
-            throw new RuntimeException("Dish not found with id: " + orderItem.getDish().getIdDish());
-        }
-
-        // Asociar el Dish al OrderItem
-        orderItem.setDish(dishOpt.get());  // Establecer el Dish al OrderItem
-
-        // Asociar la Order al OrderItem
-        OrderRestaurant order = orderOpt.get();
-        orderItem.setOrder(order);  // Establecer la Order al OrderItem
-
-        // Guardar el OrderItem y asociarlo a la Order
+        orderItem.setDish(dish);
+        orderItem.setOrder(order);
         OrderItem savedItem = orderItemRepository.save(orderItem);
-        order.getOrderItems().add(savedItem);  // Agregar el OrderItem a la lista de OrderItems de la Order
-        orderRepository.save(order);  // Guardar la Order con el nuevo OrderItem
+
+        order.getOrderItems().add(savedItem);
+        orderRepository.save(order);
 
         return savedItem;
     }

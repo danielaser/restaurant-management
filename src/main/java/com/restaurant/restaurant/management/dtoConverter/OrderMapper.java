@@ -14,6 +14,7 @@ public class OrderMapper {
         dto.setOrderItems(order.getOrderItems().stream()
                 .map(OrderItemMapper::toDto)
                 .collect(Collectors.toList()));
+        dto.setClientName(order.getClient().getClientName());
         return dto;
     }
 

@@ -8,7 +8,7 @@ import lombok.Setter;
 
 public class OrderItemResponseDto {
     private Long idOrderItem;
-    private DishResponseDto dish;
+    private Long idDish;
     private Integer quantity;
 
 }
