@@ -1,5 +1,6 @@
 package com.restaurant.restaurant.management.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +16,7 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
+    @JsonBackReference
     private OrderRestaurant order;
 
     @ManyToOne
@@ -23,8 +25,11 @@ public class OrderItem {
 
     private Integer quantity;
 
-    public OrderItem(Long idOrderItem, Dish dish, Integer quantity) {
+    private Long idDish;
+
+    public OrderItem(Long idOrderItem, OrderRestaurant order, Dish dish, Integer quantity) {
         this.idOrderItem = idOrderItem;
+        this.order = order;
         this.dish = dish;
         this.quantity = quantity;
     }

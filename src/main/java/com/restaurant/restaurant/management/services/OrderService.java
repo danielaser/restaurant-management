@@ -29,15 +29,6 @@ public class OrderService {
         this.orderItemRepository = orderItemRepository;
     }
 
-//    public OrderRestaurant addOrder(OrderRestaurant orderRestaurant) {
-//        Optional<Client> clientOpt = clientRepository.findById(orderRestaurant.getClient().getIdClient());
-//        if (clientOpt.isPresent()) {
-//            orderRestaurant.setClient(clientOpt.get());
-//            return orderRepository.save(orderRestaurant);
-//        }
-//        throw new RuntimeException("Cliente no encontrado");
-//    }
-
     public Optional<Client> getClientByName(String clientName) {
         return clientRepository.findAll().stream()
                 .filter(client -> client.getClientName().equalsIgnoreCase(clientName))
@@ -82,24 +73,26 @@ public class OrderService {
     }
 
     public OrderItem addItemToOrder(Long idOrder, OrderItem orderItem) {
-        OrderRestaurant order = orderRepository.findById(idOrder)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + idOrder));
+        Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
+        if (orderOpt.isPresent()) {
+            OrderRestaurant order = orderOpt.get();
 
-        Dish dish = dishRepository.findById(orderItem.getDish().getIdDish())
-                .orElseThrow(() -> new RuntimeException("Dish not found with id: " + orderItem.getDish().getIdDish()));
+            Optional<Dish> dishOpt = dishRepository.findById(orderItem.getIdDish());
+            if (dishOpt.isPresent()) {
+                orderItem.setDish(dishOpt.get());
+            } else {
+                throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
+            }
+            orderItem.setOrder(order);
+            OrderItem savedItem = orderItemRepository.save(orderItem);
+            order.getOrderItems().add(savedItem);
+            orderRepository.save(order);
 
-        if (dish.getMenu() == null) {
-            throw new RuntimeException("Dish is not associated with any menu");
+            return savedItem;
         }
-
-        orderItem.setDish(dish);
-        orderItem.setOrder(order);
-        OrderItem savedItem = orderItemRepository.save(orderItem);
-
-        order.getOrderItems().add(savedItem);
-        orderRepository.save(order);
-
-        return savedItem;
+        return null;
     }
+
+
 
 }

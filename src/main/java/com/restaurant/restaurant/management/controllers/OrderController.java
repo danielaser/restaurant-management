@@ -81,15 +81,21 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
-
-    @PostMapping("/{idOrder}/items")
-    public ResponseEntity<OrderItemResponseDto> addOrderItem(
-            @PathVariable Long idOrder, @RequestBody OrderItemResponseDto orderItemDto) {
+    @PostMapping("/{idOrder}/orderItems")
+    public ResponseEntity<?> addOrderItem(@PathVariable Long idOrder, @RequestBody OrderItem orderItem) {
         try {
-            OrderItem addedItem = orderService.addItemToOrder(idOrder, OrderItemMapper.toEntity(orderItemDto));
-            return ResponseEntity.ok(OrderItemMapper.toDto(addedItem));
+            OrderItem addedItem = orderService.addItemToOrder(idOrder, orderItem);
+            if (addedItem != null) {
+                return ResponseEntity.ok(addedItem);
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El plato no existe o la orden no se encuentra.");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al agregar el item al pedido: " + e.getMessage());
         }
     }
+
+
+
+
 }
