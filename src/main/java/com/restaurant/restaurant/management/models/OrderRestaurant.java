@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,14 +15,15 @@ public class OrderRestaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idOrder;
-    private Double totalAmount;
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<OrderItem> orderItems;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems = new ArrayList<>();
+
+    private Double totalAmount;
 
     public OrderRestaurant(Long idOrder, Client client, List<OrderItem> orderItems, Double totalAmount) {
         this.idOrder = idOrder;
@@ -32,4 +34,15 @@ public class OrderRestaurant {
 
     public OrderRestaurant() {
     }
+
+    public void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);  // Establece la relación bidireccional
+    }
+
+
+//    public void removeOrderItem(OrderItem orderItem) {
+//        orderItems.remove(orderItem);
+//        orderItem.setOrderRestaurant(null);
+//    }
 }

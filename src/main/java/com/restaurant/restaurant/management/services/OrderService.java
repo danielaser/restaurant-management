@@ -1,7 +1,11 @@
 package com.restaurant.restaurant.management.services;
 
-import com.restaurant.restaurant.management.models.OrderRestaurant;
-import com.restaurant.restaurant.management.models.OrderItem;
+import com.restaurant.restaurant.management.dto.OrderItemResponseDto;
+import com.restaurant.restaurant.management.dto.OrderResponseDto;
+import com.restaurant.restaurant.management.models.*;
+import com.restaurant.restaurant.management.repositories.ClientRepository;
+import com.restaurant.restaurant.management.repositories.DishRepository;
+import com.restaurant.restaurant.management.repositories.OrderItemRepository;
 import com.restaurant.restaurant.management.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,14 +17,25 @@ import java.util.Optional;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final DishRepository dishRepository;
+    private final ClientRepository clientRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, DishRepository dishRepository, ClientRepository clientRepository, OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
+        this.dishRepository = dishRepository;
+        this.clientRepository = clientRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     public OrderRestaurant addOrder(OrderRestaurant orderRestaurant) {
-        return orderRepository.save(orderRestaurant);
+        Optional<Client> clientOpt = clientRepository.findById(orderRestaurant.getClient().getIdClient());
+        if (clientOpt.isPresent()) {
+            orderRestaurant.setClient(clientOpt.get());
+            return orderRepository.save(orderRestaurant);
+        }
+        throw new RuntimeException("Cliente no encontrado");
     }
 
     public List<OrderRestaurant> getAllOrders() {
@@ -45,42 +60,31 @@ public class OrderService {
     }
 
     public OrderItem addItemToOrder(Long idOrder, OrderItem orderItem) {
+        // Buscar la Order por id
         Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
-        if (orderOpt.isPresent()) {
-            OrderRestaurant order = orderOpt.get();
-            orderItem.setDish(orderItem.getDish());
-            order.getOrderItems().add(orderItem);
-            orderRepository.save(order);
-            return orderItem;
+        if (!orderOpt.isPresent()) {
+            throw new RuntimeException("Order not found with id: " + idOrder);
         }
-        return null;
+
+        // Buscar el Dish por id
+        Optional<Dish> dishOpt = dishRepository.findById(orderItem.getDish().getIdDish());
+        if (!dishOpt.isPresent()) {
+            throw new RuntimeException("Dish not found with id: " + orderItem.getDish().getIdDish());
+        }
+
+        // Asociar el Dish al OrderItem
+        orderItem.setDish(dishOpt.get());  // Establecer el Dish al OrderItem
+
+        // Asociar la Order al OrderItem
+        OrderRestaurant order = orderOpt.get();
+        orderItem.setOrder(order);  // Establecer la Order al OrderItem
+
+        // Guardar el OrderItem y asociarlo a la Order
+        OrderItem savedItem = orderItemRepository.save(orderItem);
+        order.getOrderItems().add(savedItem);  // Agregar el OrderItem a la lista de OrderItems de la Order
+        orderRepository.save(order);  // Guardar la Order con el nuevo OrderItem
+
+        return savedItem;
     }
 
-    public void removeItemFromOrder(Long idOrder, Long idOrderItem) {
-        Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
-        if (orderOpt.isPresent()) {
-            OrderRestaurant order = orderOpt.get();
-            order.getOrderItems().removeIf(item -> item.getIdOrderItem().equals(idOrderItem));
-            orderRepository.save(order);
-        }
-    }
-
-    public OrderItem updateItemInOrder(Long idOrder, Long idOrderItem, OrderItem orderItemUpdated) {
-        Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
-        if (orderOpt.isPresent()) {
-            OrderRestaurant order = orderOpt.get();
-            Optional<OrderItem> itemOpt = order.getOrderItems().stream()
-                    .filter(item -> item.getIdOrderItem().equals(idOrderItem))
-                    .findFirst();
-
-            if (itemOpt.isPresent()) {
-                OrderItem item = itemOpt.get();
-                item.setQuantity(orderItemUpdated.getQuantity());
-                item.setDish(orderItemUpdated.getDish());
-                orderRepository.save(order);
-                return item;
-            }
-        }
-        return null;
-    }
 }

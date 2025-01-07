@@ -12,11 +12,16 @@ public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idOrderItem;
-    private Integer quantity;
 
     @ManyToOne
-    @JoinColumn(name = "dish_id", nullable = false)
+    @JoinColumn(name = "order_id")
+    private OrderRestaurant order;
+
+    @ManyToOne
+    @JoinColumn(name = "dish_id")
     private Dish dish;
+
+    private Integer quantity;
 
     public OrderItem(Long idOrderItem, Dish dish, Integer quantity) {
         this.idOrderItem = idOrderItem;

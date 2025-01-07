@@ -6,6 +6,7 @@ import com.restaurant.restaurant.management.models.OrderRestaurant;
 import java.util.stream.Collectors;
 
 public class OrderMapper {
+
     public static OrderResponseDto toDto(OrderRestaurant order) {
         OrderResponseDto dto = new OrderResponseDto();
         dto.setIdOrder(order.getIdOrder());
