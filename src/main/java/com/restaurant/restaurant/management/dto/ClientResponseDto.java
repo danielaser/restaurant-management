@@ -15,6 +15,7 @@ public class ClientResponseDto {
     private String phoneNumber;
     private String address;
     private LocalDate registrationDate;
+    private boolean frequentUser;
 }
 
 

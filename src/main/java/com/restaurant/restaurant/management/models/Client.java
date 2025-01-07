@@ -22,6 +22,7 @@ public class Client {
     private String address;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate registrationDate;
+    private boolean frequentUser;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Reservation> reservations;

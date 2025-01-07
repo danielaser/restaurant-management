@@ -35,15 +35,41 @@ public class OrderService {
                 .findFirst();
     }
 
+//    public OrderRestaurant addOrder(OrderRestaurant orderRestaurant, Long clientId) {
+//        Optional<Client> client = clientRepository.findById(clientId);
+//        if (client.isPresent()) {
+//            orderRestaurant.setClient(client.get());
+//            return orderRepository.save(orderRestaurant);
+//        } else {
+//            throw new RuntimeException("El cliente con ID: " + clientId + " no fue encontrado");
+//        }
+//    }
+
     public OrderRestaurant addOrder(OrderRestaurant orderRestaurant, Long clientId) {
-        Optional<Client> client = clientRepository.findById(clientId);
-        if (client.isPresent()) {
-            orderRestaurant.setClient(client.get());
+        Optional<Client> clientOpt = clientRepository.findById(clientId);
+        if (clientOpt.isPresent()) {
+            Client client = clientOpt.get();
+            orderRestaurant.setClient(client);
+
+            // Verificar el estado de "usuario frecuente"
+            long orderCount = orderRepository.countOrdersByClientId(clientId);
+            if (orderCount >= 10 && !client.isFrequentUser()) {
+                client.setFrequentUser(true);
+                clientRepository.save(client);
+            }
+
+            // Aplicar descuento si es "usuario frecuente"
+            if (client.isFrequentUser()) {
+                double discount = 0.0238;
+                orderRestaurant.setTotalAmount(orderRestaurant.getTotalAmount() * (1 - discount));
+            }
+
             return orderRepository.save(orderRestaurant);
         } else {
             throw new RuntimeException("El cliente con ID: " + clientId + " no fue encontrado");
         }
     }
+
 
     public List<OrderRestaurant> getAllOrders() {
         return orderRepository.findAll();

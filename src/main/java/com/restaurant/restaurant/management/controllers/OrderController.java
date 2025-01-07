@@ -31,13 +31,6 @@ public class OrderController {
         this.menuService = menuService;
     }
 
-//    @PostMapping
-//    public ResponseEntity<OrderResponseDto> addOrder(@RequestBody OrderResponseDto orderDto) {
-//        OrderRestaurant orderRestaurant = OrderMapper.toEntity(orderDto);
-//        OrderRestaurant newOrder = orderService.addOrder(orderRestaurant);
-//        return ResponseEntity.ok(OrderMapper.toDto(newOrder));
-//    }
-
     @PostMapping("/{clientName}")
     public ResponseEntity<OrderResponseDto> addOrder(@RequestBody OrderResponseDto orderDto, @PathVariable String clientName) {
         Optional<Client> clientOptional = orderService.getClientByName(clientName);
