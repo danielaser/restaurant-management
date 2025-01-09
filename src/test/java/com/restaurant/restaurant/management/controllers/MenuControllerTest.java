@@ -2,6 +2,7 @@ package com.restaurant.restaurant.management.controllers;
 
 import com.restaurant.restaurant.management.dto.DishResponseDto;
 import com.restaurant.restaurant.management.dto.MenuResponseDto;
+import com.restaurant.restaurant.management.dtoConverter.MenuMapper;
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
 import com.restaurant.restaurant.management.services.MenuService;
@@ -26,6 +27,7 @@ class MenuControllerTest {
     private MenuResponseDto menuResponseDto;
     private Dish dish;
     private DishResponseDto dishResponseDto;
+    private DishResponseDto dishResponseDto2;
 
     @BeforeEach
     void setup() {
@@ -53,6 +55,13 @@ class MenuControllerTest {
         dishResponseDto.setPrice(12.99);
         dishResponseDto.setDescription("Delicioso panzerotti");
         dishResponseDto.setIsPopular(false);
+
+        dishResponseDto2 = new DishResponseDto();
+        dishResponseDto2.setIdDish(2L);
+        dishResponseDto2.setDishName("Pasta");
+        dishResponseDto2.setPrice(15.0);
+        dishResponseDto2.setDescription("Deliciosa pasta");
+        dishResponseDto2.setIsPopular(true);
     }
 
     @Test
@@ -241,4 +250,87 @@ class MenuControllerTest {
 
         verify(menuService).updateDishInMenu(anyLong(), anyLong(), any(Dish.class));
     }
+
+    @Test
+    @DisplayName("Mapear MenuResponseDto a entidad Menu")
+    void toEntity() {
+        menuResponseDto.setDishes(List.of(dishResponseDto, dishResponseDto2));
+        Menu menu = MenuMapper.toEntity(menuResponseDto);
+
+        assertNotNull(menu);
+        assertEquals(menuResponseDto.getIdMenu(), menu.getIdMenu());
+        assertEquals(menuResponseDto.getMenuName(), menu.getMenuName());
+        assertNotNull(menu.getDishes());
+        assertEquals(menuResponseDto.getDishes().size(), menu.getDishes().size());
+
+        for (int i = 0; i < menu.getDishes().size(); i++) {
+            Dish dish = menu.getDishes().get(i);
+            DishResponseDto dishResponseDto = menuResponseDto.getDishes().get(i);
+
+            assertEquals(dishResponseDto.getIdDish(), dish.getIdDish());
+            assertEquals(dishResponseDto.getDishName(), dish.getDishName());
+            assertEquals(dishResponseDto.getPrice(), dish.getPrice());
+            assertEquals(dishResponseDto.getDescription(), dish.getDescription());
+            assertEquals(menu, dish.getMenu());
+        }
+    }
+
+    @Test
+    @DisplayName("Actualizar menu pero no existe ese menu")
+    void updateMenu_NotFound() {
+        when(menuService.updateMenu(anyLong(), any(Menu.class))).thenReturn(null);
+
+        webTestClient.put()
+                .uri("/api/menus/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(menuResponseDto)
+                .exchange()
+                .expectStatus().isNotFound();
+
+        verify(menuService).updateMenu(anyLong(), any(Menu.class));
+    }
+
+    @Test
+    @DisplayName("Agregar plato a menu pero no existe el menu")
+    void addDishToMenu_NotFound() {
+        when(menuService.addDishToMenu(anyLong(), any(Dish.class))).thenReturn(null);
+
+        webTestClient.post()
+                .uri("/api/menus/{idMenu}/dishes", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(dishResponseDto)
+                .exchange()
+                .expectStatus().isNotFound();
+
+        verify(menuService).addDishToMenu(anyLong(), any(Dish.class));
+    }
+
+    @Test
+    @DisplayName("Obtener platos de un menu pero esta vacio")
+    void getAllDishesFromMenu_NotFound() {
+        when(menuService.getAllDishesFromMenu(anyLong())).thenReturn(List.of());
+
+        webTestClient.get()
+                .uri("/api/menus/{idMenu}/dishes", 1L)
+                .exchange()
+                .expectStatus().isNotFound();
+
+        verify(menuService).getAllDishesFromMenu(anyLong());
+    }
+
+    @Test
+    @DisplayName("Actualizar plato en menu pero no se encuentra")
+    void updateDishInMenu_NotFound() {
+        when(menuService.updateDishInMenu(anyLong(), anyLong(), any(Dish.class))).thenReturn(null);
+
+        webTestClient.put()
+                .uri("/api/menus/{idMenu}/dishes/{idDish}", 1L, 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(dishResponseDto)
+                .exchange()
+                .expectStatus().isNotFound();
+
+        verify(menuService).updateDishInMenu(anyLong(), anyLong(), any(Dish.class));
+    }
+
 }

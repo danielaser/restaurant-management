@@ -17,6 +17,9 @@ public class ClientResponseDto {
     private LocalDate registrationDate;
     private boolean frequentUser;
     private boolean isVIP;
+
+    public ClientResponseDto() {
+    }
 }
 
 

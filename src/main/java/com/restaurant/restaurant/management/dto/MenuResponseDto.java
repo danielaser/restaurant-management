@@ -11,5 +11,8 @@ public class MenuResponseDto {
     private Long idMenu;
     private String menuName;
     private List<DishResponseDto> dishes;
+
+    public MenuResponseDto() {
+    }
 }
 

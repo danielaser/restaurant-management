@@ -141,4 +141,40 @@ class ClientControllerTest {
 
         verify(clientService).deleteClient(anyLong());
     }
+
+    @Test
+    @DisplayName("Error al agregar cliente")
+    void addClientInternalServerError() {
+        doThrow(new RuntimeException("Database error")).when(clientService).addClient(any(Client.class));
+
+        webTestClient.post()
+                .uri("/api/clients")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(clientResponseDto)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody(String.class)
+                .value(message -> {
+                    assertTrue(message.contains("Error al agregar el cliente:"));
+                    assertTrue(message.contains("Database error"));
+                });
+
+        verify(clientService).addClient(any(Client.class));
+    }
+
+    @Test
+    @DisplayName("Actualizar cliente pero cliente no encontrado")
+    void updateClientNotFound() {
+        when(clientService.updateClient(anyLong(), any(Client.class))).thenThrow(new RuntimeException("Client not found"));
+
+        webTestClient.put()
+                .uri("/api/clients/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(clientResponseDto)
+                .exchange()
+                .expectStatus().isNotFound();
+
+        verify(clientService).updateClient(anyLong(), any(Client.class));
+    }
+
 }

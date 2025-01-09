@@ -13,6 +13,9 @@ public class OrderResponseDto {
     private Double totalAmount;
     private List<OrderItemResponseDto> orderItems;
     private String clientName;
+
+    public OrderResponseDto() {
+    }
 }
 
 

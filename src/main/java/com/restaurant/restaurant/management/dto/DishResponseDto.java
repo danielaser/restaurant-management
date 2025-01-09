@@ -12,5 +12,8 @@ public class DishResponseDto {
     private Double price;
     private String description;
     private Boolean isPopular;
+
+    public DishResponseDto() {
+    }
 }
 

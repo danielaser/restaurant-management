@@ -2,6 +2,8 @@ package com.restaurant.restaurant.management.controllers;
 
 import com.restaurant.restaurant.management.dto.OrderItemResponseDto;
 import com.restaurant.restaurant.management.dto.OrderResponseDto;
+import com.restaurant.restaurant.management.dtoConverter.OrderItemMapper;
+import com.restaurant.restaurant.management.dtoConverter.OrderMapper;
 import com.restaurant.restaurant.management.models.Client;
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.OrderItem;
@@ -10,6 +12,7 @@ import com.restaurant.restaurant.management.services.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -298,5 +301,92 @@ class OrderControllerTest {
                 .value(message -> assertEquals("Order not found.", message));
 
         verify(orderService, never()).deleteOrderItem(anyLong());
+    }
+
+    @Test
+    @DisplayName("Mapear OrderItemResponseDto a entidad OrderItem")
+    void toEntityOrderItem() {
+        OrderItem orderItem = OrderItemMapper.toEntity(orderItemResponseDto);
+
+        assertNotNull(orderItem);
+        assertEquals(orderItemResponseDto.getIdOrderItem(), orderItem.getIdOrderItem());
+        assertNotNull(orderItem.getDish());
+        assertEquals(orderItemResponseDto.getIdDish(), orderItem.getDish().getIdDish());
+        assertEquals(orderItemResponseDto.getQuantity(), orderItem.getQuantity());
+    }
+
+    @Test
+    @DisplayName("Mapear OrderResponseDto a entidad OrderRestaurant")
+    void toEntityOrder() {
+        orderResponseDto.setOrderItems(List.of(orderItemResponseDto));
+        OrderRestaurant order = OrderMapper.toEntity(orderResponseDto);
+
+        assertNotNull(order);
+        assertEquals(orderResponseDto.getIdOrder(), order.getIdOrder());
+        assertEquals(orderResponseDto.getTotalAmount(), order.getTotalAmount());
+        assertNotNull(order.getOrderItems());
+        assertEquals(orderResponseDto.getOrderItems().size(), order.getOrderItems().size());
+
+        for (int i = 0; i < order.getOrderItems().size(); i++) {
+            OrderItem orderItem = order.getOrderItems().get(i);
+            OrderItemResponseDto orderItemResponseDto = orderResponseDto.getOrderItems().get(i);
+
+            assertEquals(orderItemResponseDto.getIdOrderItem(), orderItem.getIdOrderItem());
+            assertNotNull(orderItem.getDish());
+            assertEquals(orderItemResponseDto.getIdDish(), orderItem.getDish().getIdDish());
+            assertEquals(orderItemResponseDto.getQuantity(), orderItem.getQuantity());
+        }
+    }
+
+    @Test
+    @DisplayName("Error interno al agregar un item a una orden")
+    void addOrderItemInternalError() {
+        when(orderService.addItemToOrder(anyLong(), any(OrderItem.class))).thenThrow(new RuntimeException("Database error"));
+
+        webTestClient.post()
+                .uri("/api/orders/{idOrder}/orderItems", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(orderItemResponseDto)
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+                .expectBody(String.class)
+                .value(message -> assertNull(message)); // Verifica que el cuerpo sea nulo
+
+        verify(orderService).addItemToOrder(anyLong(), any(OrderItem.class));
+    }
+
+
+    @Test
+    @DisplayName("Error interno al actualizar un item de una orden")
+    void updateOrderItemInternalError() {
+        when(orderService.getOrder(anyLong())).thenReturn(Optional.of(order));
+        when(orderService.updateOrderItem(anyLong(), any(OrderItem.class))).thenThrow(new RuntimeException("Update error"));
+
+        webTestClient.put()
+                .uri("/api/orders/{idOrder}/orderItems/{idOrderItem}", 1L, 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(orderItemResponseDto)
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+                .expectBody(String.class)
+                .value(message -> assertEquals("Error updating the OrderItem: Update error", message));
+
+        verify(orderService).updateOrderItem(anyLong(), any(OrderItem.class));
+    }
+
+    @Test
+    @DisplayName("Error interno al eliminar un item de una orden")
+    void deleteOrderItemInternalError() {
+        when(orderService.getOrder(anyLong())).thenReturn(Optional.of(order));
+        doThrow(new RuntimeException("Delete error")).when(orderService).deleteOrderItem(anyLong());
+
+        webTestClient.delete()
+                .uri("/api/orders/{idOrder}/orderItems/{idOrderItem}", 1L, 1L)
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+                .expectBody(String.class)
+                .value(message -> assertEquals("Error deleting the OrderItem: Delete error", message));
+
+        verify(orderService).deleteOrderItem(anyLong());
     }
 }
