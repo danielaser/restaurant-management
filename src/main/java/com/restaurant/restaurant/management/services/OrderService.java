@@ -1,6 +1,10 @@
 package com.restaurant.restaurant.management.services;
 
+import com.restaurant.restaurant.management.chain.DishHandler;
+import com.restaurant.restaurant.management.chain.IncreasePriceHandler;
+import com.restaurant.restaurant.management.chain.PopularityHandler;
 import com.restaurant.restaurant.management.models.*;
+import com.restaurant.restaurant.management.observer.AdminNotifier;
 import com.restaurant.restaurant.management.repositories.ClientRepository;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.OrderItemRepository;
@@ -91,27 +95,46 @@ public class OrderService {
 
     public OrderItem addItemToOrder(Long idOrder, OrderItem orderItem) {
         Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
-        OrderItem savedItem = isPresentOrder(orderItem, orderOpt);
-        if (savedItem != null) return savedItem;
+        if (orderOpt.isPresent()) {
+            OrderRestaurant order = orderOpt.get();
+
+            // Verificar si el plato existe y asociarlo con el OrderItem
+            Optional<Dish> dishOpt = dishRepository.findById(orderItem.getIdDish());
+            if (dishOpt.isPresent()) {
+                Dish dish = dishOpt.get();
+
+                // Aplicar patrones de popularidad y precio antes de agregar el plato
+                addPatterns(dish);
+
+                // Asociar el plato con el item y con el pedido
+                orderItem.setDish(dish);
+                orderItem.setOrder(order);
+
+                // Guardar el OrderItem y actualizar la lista de platos en el pedido
+                OrderItem savedItem = orderItemRepository.save(orderItem);
+                order.getOrderItems().add(savedItem);
+                orderRepository.save(order);
+
+                return savedItem;
+            } else {
+                throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
+            }
+        }
         return null;
     }
 
-    private OrderItem isPresentOrder(OrderItem orderItem, Optional<OrderRestaurant> orderOpt) {
-        if (orderOpt.isPresent()) {
-            OrderRestaurant order = orderOpt.get();
-            Optional<Dish> dishOpt = dishRepository.findById(orderItem.getIdDish());
-            isPresentDish(orderItem, dishOpt);
-            orderItem.setOrder(order);
-            OrderItem savedItem = orderItemRepository.save(orderItem);
-            order.getOrderItems().add(savedItem);
-            orderRepository.save(order);
-            return savedItem;
-        } return null;
-    }
+    private void addPatterns(Dish dish) {
+        if (dish.getObservers().isEmpty()) {
+            AdminNotifier adminNotifier = new AdminNotifier();
+            dish.addObserver(adminNotifier);
+        }
 
-    private static void isPresentDish(OrderItem orderItem, Optional<Dish> dishOpt) {
-        if (dishOpt.isPresent()) orderItem.setDish(dishOpt.get());
-        else throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
+        DishHandler popularityHandler = new PopularityHandler();
+        DishHandler increasePriceHandler = new IncreasePriceHandler();
+        popularityHandler.setNextHandler(increasePriceHandler);
+
+        long timesOrdered = orderRepository.countOrdersByDishId(dish.getIdDish());
+        popularityHandler.handle(dish, (int) timesOrdered);
     }
 
     public Optional<OrderItem> getOrderItemById(Long idOrderItem) {

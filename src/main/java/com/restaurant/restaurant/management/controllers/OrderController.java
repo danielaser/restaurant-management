@@ -1,5 +1,6 @@
 package com.restaurant.restaurant.management.controllers;
 
+import com.restaurant.restaurant.management.dto.OrderItemResponseDto;
 import com.restaurant.restaurant.management.dto.OrderResponseDto;
 import com.restaurant.restaurant.management.dtoConverter.OrderItemMapper;
 import com.restaurant.restaurant.management.dtoConverter.OrderMapper;
@@ -69,13 +70,15 @@ public class OrderController {
     }
 
     @PostMapping("/{idOrder}/orderItems")
-    public ResponseEntity<?> addOrderItem(@PathVariable Long idOrder, @RequestBody OrderItem orderItem) {
+    public ResponseEntity<OrderItemResponseDto> addOrderItem(@PathVariable Long idOrder, @RequestBody OrderItem orderItem) {
         try {
             OrderItem addedItem = orderService.addItemToOrder(idOrder, orderItem);
-            if (addedItem != null) return ResponseEntity.ok(addedItem);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El plato no existe o la orden no se encuentra.");
+            if (addedItem != null) {
+                OrderItemResponseDto responseDto = OrderItemMapper.toDto(addedItem);
+                return ResponseEntity.ok(responseDto);
+            } else return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al agregar el item al pedido: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

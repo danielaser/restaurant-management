@@ -1,15 +1,10 @@
 package com.restaurant.restaurant.management.services;
 
-import com.restaurant.restaurant.management.chain.DiscountHandler;
-import com.restaurant.restaurant.management.chain.DishHandler;
-import com.restaurant.restaurant.management.chain.PopularityHandler;
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
 import com.restaurant.restaurant.management.observer.AdminNotifier;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.MenuRepository;
-import com.restaurant.restaurant.management.repositories.OrderRepository;
-import org.hibernate.query.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +16,11 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final DishRepository dishRepository;
-    private final OrderRepository orderRepository;
 
     @Autowired
-    public MenuService(MenuRepository menuRepository, DishRepository dishRepository, OrderRepository orderRepository) {
+    public MenuService(MenuRepository menuRepository, DishRepository dishRepository) {
         this.menuRepository = menuRepository;
         this.dishRepository = dishRepository;
-        this.orderRepository = orderRepository;
     }
 
     public Menu addMenu(Menu menu) {
@@ -63,24 +56,11 @@ public class MenuService {
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
             dish.setMenu(menu);
-            addPatterns(dish);
             Dish savedDish = dishRepository.save(dish);
             menu.getDishes().add(savedDish);
             menuRepository.save(menu);
             return savedDish;
         } return null;
-    }
-
-    private void addPatterns(Dish dish) {
-        AdminNotifier adminNotifier = new AdminNotifier();
-        dish.addObserver(adminNotifier);
-
-        DishHandler popularityHandler = new PopularityHandler();
-        DishHandler discountHandler = new DiscountHandler();
-        popularityHandler.setNextHandler(discountHandler);
-
-        long timesOrdered = orderRepository.countOrdersByDishId(dish.getIdDish());
-        popularityHandler.handle(dish, (int) timesOrdered);
     }
 
     public List<Dish> getAllDishesFromMenu(Long idMenu) {
@@ -100,13 +80,28 @@ public class MenuService {
     }
 
     public void removeDishFromMenu(Long idMenu, Long idDish) {
+        AdminNotifier adminNotifier = new AdminNotifier();
         Optional<Menu> menuOpt = menuRepository.findById(idMenu);
+
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
-            menu.getDishes().removeIf(dish -> dish.getIdDish().equals(idDish));
-            menuRepository.save(menu);
+            Optional<Dish> dishOpt = menu.getDishes().stream()
+                    .filter(d -> d.getIdDish().equals(idDish))
+                    .findFirst();
+
+            if (dishOpt.isPresent()) {
+                Dish dish = dishOpt.get();
+
+                if (dish.getObservers().contains(adminNotifier)) {
+                    dish.removeObserver(adminNotifier);
+                }
+                menu.getDishes().removeIf(d -> d.getIdDish().equals(idDish));
+                menuRepository.save(menu);
+                dishRepository.delete(dish);
+            }
         }
     }
+
 
     public Dish updateDishInMenu(Long idMenu, Long idDish, Dish dishUpdated) {
         Optional<Menu> menuOpt = menuRepository.findById(idMenu);
