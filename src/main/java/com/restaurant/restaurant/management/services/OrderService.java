@@ -98,23 +98,16 @@ public class OrderService {
         if (orderOpt.isPresent()) {
             OrderRestaurant order = orderOpt.get();
 
-            // Verificar si el plato existe y asociarlo con el OrderItem
             Optional<Dish> dishOpt = dishRepository.findById(orderItem.getIdDish());
             if (dishOpt.isPresent()) {
                 Dish dish = dishOpt.get();
-
-                // Aplicar patrones de popularidad y precio antes de agregar el plato
                 addPatterns(dish);
-
-                // Asociar el plato con el item y con el pedido
                 orderItem.setDish(dish);
                 orderItem.setOrder(order);
 
-                // Guardar el OrderItem y actualizar la lista de platos en el pedido
                 OrderItem savedItem = orderItemRepository.save(orderItem);
                 order.getOrderItems().add(savedItem);
                 orderRepository.save(order);
-
                 return savedItem;
             } else {
                 throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
