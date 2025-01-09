@@ -8,6 +8,8 @@ import com.restaurant.restaurant.management.models.Menu;
 import com.restaurant.restaurant.management.observer.AdminNotifier;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.MenuRepository;
+import com.restaurant.restaurant.management.repositories.OrderRepository;
+import org.hibernate.query.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +21,13 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final DishRepository dishRepository;
+    private final OrderRepository orderRepository;
 
     @Autowired
-    public MenuService(MenuRepository menuRepository, DishRepository dishRepository) {
+    public MenuService(MenuRepository menuRepository, DishRepository dishRepository, OrderRepository orderRepository) {
         this.menuRepository = menuRepository;
         this.dishRepository = dishRepository;
+        this.orderRepository = orderRepository;
     }
 
     public Menu addMenu(Menu menu) {
@@ -67,13 +71,16 @@ public class MenuService {
         } return null;
     }
 
-    private static void addPatterns(Dish dish) {
+    private void addPatterns(Dish dish) {
         AdminNotifier adminNotifier = new AdminNotifier();
         dish.addObserver(adminNotifier);
+
         DishHandler popularityHandler = new PopularityHandler();
         DishHandler discountHandler = new DiscountHandler();
         popularityHandler.setNextHandler(discountHandler);
-        popularityHandler.handle(dish, 120);
+
+        long timesOrdered = orderRepository.countOrdersByDishId(dish.getIdDish());
+        popularityHandler.handle(dish, (int) timesOrdered);
     }
 
     public List<Dish> getAllDishesFromMenu(Long idMenu) {

@@ -8,6 +8,7 @@ public class PopularityHandler extends DishHandler {
         if (timesOrdered > 100 && !dish.isPopular()) {
             dish.setPopular(true);
             dish.setPrice(dish.getPrice() * 1.0573);
+            dish.notifyObservers();
         }
         if (nextHandler != null) nextHandler.handle(dish, timesOrdered);
     }

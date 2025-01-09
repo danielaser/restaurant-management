@@ -56,12 +56,4 @@ public class Dish {
             observer.update(this);
         }
     }
-
-    public void checkPopularity(int timesOrdered) {
-        if (timesOrdered > 100 && !isPopular) {
-            this.isPopular = true;
-            this.price += this.price * 0.0573;
-            notifyObservers();
-        }
-    }
 }

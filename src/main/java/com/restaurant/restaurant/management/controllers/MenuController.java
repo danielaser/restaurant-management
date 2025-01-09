@@ -61,9 +61,13 @@ public class MenuController {
     }
 
     @PostMapping("/{idMenu}/dishes")
-    public ResponseEntity<Dish> addDishToMenu(@PathVariable Long idMenu, @RequestBody Dish dish) {
+    public ResponseEntity<DishResponseDto> addDishToMenu(@PathVariable Long idMenu, @RequestBody DishResponseDto dishDto) {
+        Dish dish = DishMapper.toEntity(dishDto);
         Dish addedDish = menuService.addDishToMenu(idMenu, dish);
-        if (addedDish != null) return ResponseEntity.ok(addedDish);
+        if (addedDish != null) {
+            DishResponseDto responseDto = DishMapper.toDto(addedDish);
+            return ResponseEntity.ok(responseDto);
+        }
         return ResponseEntity.notFound().build();
     }
 
