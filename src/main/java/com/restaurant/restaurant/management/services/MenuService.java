@@ -82,23 +82,23 @@ public class MenuService {
     public void removeDishFromMenu(Long idMenu, Long idDish) {
         AdminNotifier adminNotifier = new AdminNotifier();
         Optional<Menu> menuOpt = menuRepository.findById(idMenu);
-
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
             Optional<Dish> dishOpt = menu.getDishes().stream()
                     .filter(d -> d.getIdDish().equals(idDish))
                     .findFirst();
 
-            if (dishOpt.isPresent()) {
-                Dish dish = dishOpt.get();
+            isDishExisting(idDish, dishOpt, adminNotifier, menu);
+        }
+    }
 
-                if (dish.getObservers().contains(adminNotifier)) {
-                    dish.removeObserver(adminNotifier);
-                }
-                menu.getDishes().removeIf(d -> d.getIdDish().equals(idDish));
-                menuRepository.save(menu);
-                dishRepository.delete(dish);
-            }
+    private void isDishExisting(Long idDish, Optional<Dish> dishOpt, AdminNotifier adminNotifier, Menu menu) {
+        if (dishOpt.isPresent()) {
+            Dish dish = dishOpt.get();
+            if (dish.getObservers().contains(adminNotifier)) dish.removeObserver(adminNotifier);
+            menu.getDishes().removeIf(d -> d.getIdDish().equals(idDish));
+            menuRepository.save(menu);
+            dishRepository.delete(dish);
         }
     }
 

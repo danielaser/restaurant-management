@@ -97,23 +97,23 @@ public class OrderService {
         Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
         if (orderOpt.isPresent()) {
             OrderRestaurant order = orderOpt.get();
-
             Optional<Dish> dishOpt = dishRepository.findById(orderItem.getIdDish());
-            if (dishOpt.isPresent()) {
-                Dish dish = dishOpt.get();
-                addPatterns(dish);
-                orderItem.setDish(dish);
-                orderItem.setOrder(order);
-
-                OrderItem savedItem = orderItemRepository.save(orderItem);
-                order.getOrderItems().add(savedItem);
-                orderRepository.save(order);
-                return savedItem;
-            } else {
-                throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
-            }
+            return isDishExisting(orderItem, dishOpt, order);
         }
         return null;
+    }
+
+    private OrderItem isDishExisting(OrderItem orderItem, Optional<Dish> dishOpt, OrderRestaurant order) {
+        if (dishOpt.isPresent()) {
+            Dish dish = dishOpt.get();
+            addPatterns(dish);
+            orderItem.setDish(dish);
+            orderItem.setOrder(order);
+            OrderItem savedItem = orderItemRepository.save(orderItem);
+            order.getOrderItems().add(savedItem);
+            orderRepository.save(order);
+            return savedItem;
+        } else throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
     }
 
     private void addPatterns(Dish dish) {
@@ -121,11 +121,9 @@ public class OrderService {
             AdminNotifier adminNotifier = new AdminNotifier();
             dish.addObserver(adminNotifier);
         }
-
         DishHandler popularityHandler = new PopularityHandler();
         DishHandler increasePriceHandler = new IncreasePriceHandler();
         popularityHandler.setNextHandler(increasePriceHandler);
-
         long timesOrdered = orderRepository.countOrdersByDishId(dish.getIdDish());
         popularityHandler.handle(dish, (int) timesOrdered);
     }

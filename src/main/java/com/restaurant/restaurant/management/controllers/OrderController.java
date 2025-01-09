@@ -75,8 +75,7 @@ public class OrderController {
                 return ResponseEntity.ok(responseDto);
             } else return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (RuntimeException e) {
-            // Registrar el error
-            e.printStackTrace(); // Esto imprimirá la traza de la excepción en los logs del servidor
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

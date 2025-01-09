@@ -90,7 +90,6 @@ public class MenuController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
     @DeleteMapping("/{idMenu}/dishes/{idDish}")
     public ResponseEntity<Void> removeDishFromMenu(@PathVariable Long idMenu, @PathVariable Long idDish) {
         menuService.removeDishFromMenu(idMenu, idDish);
