@@ -80,7 +80,7 @@ public class OrderService {
         }).orElseThrow(() -> new RuntimeException("El pedido con id: " + id + " no pudo ser actualizado"));
     }
 
-    private static void getItems(OrderRestaurant orderUpdated, OrderRestaurant existingOrder) {
+    public static void getItems(OrderRestaurant orderUpdated, OrderRestaurant existingOrder) {
         if (orderUpdated.getOrderItems() != null) {
             orderUpdated.getOrderItems().forEach(item -> {
                 item.setOrder(existingOrder);

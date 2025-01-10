@@ -183,4 +183,100 @@ class MenuServiceTest {
         assertEquals(15.0, result.getPrice());
         verify(menuRepository).findById(anyLong());
     }
+
+    @Test
+    @DisplayName("Actualizar un menu con platos")
+    void updateMenuWithDishes() {
+        List<Dish> dishes = new ArrayList<>();
+        Dish newDish = new Dish();
+        newDish.setDishName("Pizza");
+        dishes.add(newDish);
+
+        Menu updatedMenu = new Menu();
+        updatedMenu.setMenuName("Menu de fin de semana");
+        updatedMenu.setDishes(dishes);
+
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
+        when(menuRepository.save(any(Menu.class))).thenReturn(menu);
+
+        Menu result = menuService.updateMenu(1L, updatedMenu);
+
+        assertNotNull(result);
+        assertEquals(updatedMenu.getMenuName(), result.getMenuName());
+        assertNotNull(result.getDishes());
+        assertFalse(result.getDishes().isEmpty());
+        verify(menuRepository).findById(anyLong());
+        verify(menuRepository).save(any(Menu.class));
+    }
+
+    @Test
+    @DisplayName("No agregar un plato a un menu cuando no se encuentra el menu")
+    void addDishToMenuMenuNotFound() {
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Dish result = menuService.addDishToMenu(1L, dish);
+
+        assertNull(result);
+        verify(menuRepository).findById(anyLong());
+    }
+
+    @Test
+    @DisplayName("No obtener un plato de un menu cuando no se encuentra el plato por id")
+    void getDishFromMenuDishNotFound() {
+        Dish dish1 = new Dish();
+        dish1.setIdDish(1L);
+        dish1.setDishName("Pizza");
+        Dish dish2 = new Dish();
+        dish2.setIdDish(2L);
+        dish2.setDishName("Pasta");
+        menu.setDishes(List.of(dish1, dish2));
+
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
+
+        Optional<Dish> result = menuService.getDishFromMenu(1L, 3L);
+
+        verify(menuRepository).findById(anyLong());
+    }
+
+    @Test
+    @DisplayName("No obtener un plato de un menu cuando el menu no existe")
+    void getDishFromMenuMenuNotFound() {
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Optional<Dish> result = menuService.getDishFromMenu(1L, 1L);
+
+        verify(menuRepository).findById(anyLong());
+    }
+
+    @Test
+    @DisplayName("No actualizar un plato en un menu cuando no se encuentra el plato")
+    void updateDishInMenuDishNotFound() {
+        Dish updatedDish = new Dish();
+        updatedDish.setDishName("Pasta");
+        updatedDish.setPrice(10.0);
+
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
+
+        Dish result = menuService.updateDishInMenu(1L, 2L, updatedDish);
+
+        assertNull(result);
+        verify(menuRepository).findById(anyLong());
+    }
+
+    @Test
+    @DisplayName("No obtener un plato de un menu cuando no se encuentra el plato")
+    void getDishOptDishNotFound() {
+        Dish updatedDish = new Dish();
+        updatedDish.setDishName("Ensalada");
+        updatedDish.setPrice(8.0);
+
+        when(menuRepository.save(any(Menu.class))).thenReturn(menu);
+
+        Dish result = menuService.updateDishInMenu(1L, 2L, updatedDish);
+
+        assertNull(result);
+        verify(menuRepository).findById(anyLong());
+    }
+
+
 }

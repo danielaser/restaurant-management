@@ -87,7 +87,6 @@ class OrderServiceTest {
         verify(orderItemRepository).save(any(OrderItem.class));
     }
 
-
     @Test
     @DisplayName("Obtener un pedido por id correctamente")
     void getOrderById() {
@@ -165,8 +164,6 @@ class OrderServiceTest {
         verify(orderItemRepository).existsById(anyLong());
     }
 
-
-
     @Test
     @DisplayName("Obtener todos los pedidos correctamente")
     void getAllOrders() {
@@ -237,5 +234,90 @@ class OrderServiceTest {
         );
         assertEquals("OrderItem with id: " + orderItem.getIdOrderItem() + " not found", thrown.getMessage());
     }
+
+    @Test
+    @DisplayName("Obtener cliente por nombre correctamente")
+    void getClientByName() {
+        when(clientRepository.findAll()).thenReturn(List.of(client));
+
+        Optional<Client> foundClient = orderService.getClientByName("Dani");
+
+        assertTrue(foundClient.isPresent());
+        assertEquals(client.getClientName(), foundClient.get().getClientName());
+    }
+
+    @Test
+    @DisplayName("No agregar un pedido cuando el cliente no existe")
+    void addOrderClientNotFound() {
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+                orderService.addOrder(order, 3L)
+        );
+        assertEquals("El cliente con ID: 3 no fue encontrado", thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("Marcar cliente como frecuente y guardar en el repositorio")
+    void isFrequentClient() {
+        client.setFrequentUser(false);
+
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(client));
+        when(orderRepository.countOrdersByClientId(anyLong())).thenReturn(10L);
+
+        orderService.addOrder(order, client.getIdClient());
+
+        assertTrue(client.isFrequentUser());
+        verify(clientRepository).save(client);
+    }
+
+
+    @Test
+    @DisplayName("Actualizar items de una orden correctamente")
+    void getItems() {
+        OrderRestaurant existingOrder = new OrderRestaurant();
+        existingOrder.setOrderItems(new ArrayList<>());
+
+        OrderItem newItem = new OrderItem();
+        newItem.setIdOrderItem(1L);
+        newItem.setQuantity(2);
+
+        OrderRestaurant updatedOrder = new OrderRestaurant();
+        updatedOrder.setOrderItems(List.of(newItem));
+
+        orderService.getItems(updatedOrder, existingOrder);
+
+        assertEquals(1, existingOrder.getOrderItems().size());
+        assertEquals(newItem.getIdOrderItem(), existingOrder.getOrderItems().get(0).getIdOrderItem());
+    }
+
+    @Test
+    @DisplayName("Obtener un item de la orden por id")
+    void getOrderItemById() {
+        when(orderItemRepository.findById(anyLong())).thenReturn(Optional.of(orderItem));
+
+        Optional<OrderItem> foundOrderItem = orderService.getOrderItemById(orderItem.getIdOrderItem());
+
+        assertTrue(foundOrderItem.isPresent());
+        assertEquals(orderItem.getIdOrderItem(), foundOrderItem.get().getIdOrderItem());
+    }
+
+    @Test
+    @DisplayName("No actualizar item de una orden cuando el plato no existe")
+    void updateOrderItemDishNotFound() {
+        OrderItem updatedOrderItem = new OrderItem();
+        updatedOrderItem.setIdDish(5L);
+
+        when(orderItemRepository.findById(anyLong())).thenReturn(Optional.of(orderItem));
+        when(dishRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+                orderService.updateOrderItem(orderItem.getIdOrderItem(), updatedOrderItem)
+        );
+        assertEquals("Dish not found with id: " + updatedOrderItem.getIdDish(), thrown.getMessage());
+    }
+
+
+
 
 }

@@ -143,4 +143,18 @@ class ReservationServiceTest {
         assertTrue(price > 0);
         assertInstanceOf(VIPPricingStrategy.class, new VIPPricingStrategy());
     }
+
+    @Test
+    @DisplayName("Obtener cliente por nombre correctamente")
+    void getClientByName() {
+        String clientName = "Dani";
+        when(clientRepository.findAll()).thenReturn(List.of(client));
+
+        Optional<Client> foundClient = reservationService.getClientByName(clientName);
+
+        assertTrue(foundClient.isPresent());
+        assertEquals(clientName, foundClient.get().getClientName());
+        verify(clientRepository).findAll();
+    }
+
 }
