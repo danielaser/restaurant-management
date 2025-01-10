@@ -2,6 +2,8 @@ package com.restaurant.restaurant.management.services;
 
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
+import com.restaurant.restaurant.management.observer.AdminNotifier;
+import com.restaurant.restaurant.management.observer.DishObserver;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.MenuRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -155,7 +157,7 @@ class MenuServiceTest {
     @Test
     @DisplayName("Eliminar un plato de un menu")
     void removeDishFromMenu() {
-        menu.setDishes(new ArrayList<>(List.of(dish))); // Usar lista mutable
+        menu.setDishes(new ArrayList<>(List.of(dish)));
         when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
         doNothing().when(dishRepository).delete(any(Dish.class));
 
@@ -165,6 +167,41 @@ class MenuServiceTest {
         verify(dishRepository).delete(any(Dish.class));
     }
 
+    @Test
+    @DisplayName("No eliminar un plato de un menu cuando el menu no existe")
+    void removeDishFromMenuMenuNotFound() {
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        menuService.removeDishFromMenu(1L, 1L);
+
+        verify(menuRepository).findById(anyLong());
+        verify(dishRepository, never()).delete(any(Dish.class));
+    }
+
+    @Test
+    @DisplayName("Eliminar un plato de un menu cuando el plato no existe")
+    void removeDishFromMenuDishNotFound() {
+        menu.setDishes(new ArrayList<>());
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
+
+        menuService.removeDishFromMenu(1L, 999L);
+
+        verify(menuRepository).findById(anyLong());
+        verify(dishRepository, never()).delete(any(Dish.class));
+    }
+
+    @Test
+    @DisplayName("Eliminar un plato de un menu cuando el plato existe")
+    void removeDishFromMenuDishFound() {
+        menu.setDishes(new ArrayList<>(List.of(dish)));
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
+        doNothing().when(dishRepository).delete(any(Dish.class));
+
+        menuService.removeDishFromMenu(1L, 1L);
+
+        verify(menuRepository).findById(anyLong());
+        verify(dishRepository).delete(any(Dish.class));
+    }
 
     @Test
     @DisplayName("Actualizar un plato en un menu")
@@ -205,6 +242,26 @@ class MenuServiceTest {
         assertEquals(updatedMenu.getMenuName(), result.getMenuName());
         assertNotNull(result.getDishes());
         assertFalse(result.getDishes().isEmpty());
+        verify(menuRepository).findById(anyLong());
+        verify(menuRepository).save(any(Menu.class));
+    }
+
+    @Test
+    @DisplayName("Actualizar un menu con platos vacío")
+    void updateMenuWithEmptyDishes() {
+        Menu updatedMenu = new Menu();
+        updatedMenu.setMenuName("Menu de fin de semana");
+        updatedMenu.setDishes(new ArrayList<>());
+
+        when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
+        when(menuRepository.save(any(Menu.class))).thenReturn(menu);
+
+        Menu result = menuService.updateMenu(1L, updatedMenu);
+
+        assertNotNull(result);
+        assertEquals("Menu de fin de semana", result.getMenuName());
+        assertTrue(result.getDishes().isEmpty());
+
         verify(menuRepository).findById(anyLong());
         verify(menuRepository).save(any(Menu.class));
     }
@@ -277,6 +334,4 @@ class MenuServiceTest {
         assertNull(result);
         verify(menuRepository).findById(anyLong());
     }
-
-
 }

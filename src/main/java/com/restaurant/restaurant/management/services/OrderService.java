@@ -115,7 +115,7 @@ public class OrderService {
         } else throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
     }
 
-    private void addPatterns(Dish dish) {
+    public void addPatterns(Dish dish) {
         if (dish.getObservers().isEmpty()) {
             AdminNotifier adminNotifier = new AdminNotifier();
             dish.addObserver(adminNotifier);
@@ -125,6 +125,7 @@ public class OrderService {
         popularityHandler.setNextHandler(increasePriceHandler);
         long timesOrdered = orderRepository.countOrdersByDishId(dish.getIdDish());
         popularityHandler.handle(dish, (int) timesOrdered);
+        dishRepository.save(dish);
     }
 
     public Optional<OrderItem> getOrderItemById(Long idOrderItem) {

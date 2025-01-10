@@ -1,6 +1,7 @@
 package com.restaurant.restaurant.management.services;
 
 import com.restaurant.restaurant.management.models.*;
+import com.restaurant.restaurant.management.observer.AdminNotifier;
 import com.restaurant.restaurant.management.repositories.ClientRepository;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.OrderItemRepository;
@@ -317,7 +318,105 @@ class OrderServiceTest {
         assertEquals("Dish not found with id: " + updatedOrderItem.getIdDish(), thrown.getMessage());
     }
 
+    @Test
+    @DisplayName("Marcar cliente como frecuente cuando tiene mas de 10 pedidos")
+    void markClientAsFrequentWhenOrderCountIsAbove10() {
+        client.setFrequentUser(false);
+        when(orderRepository.countOrdersByClientId(client.getIdClient())).thenReturn(11L);
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(client));
+        when(orderRepository.save(any(OrderRestaurant.class))).thenReturn(order);
 
+        orderService.addOrder(order, client.getIdClient());
 
+        assertTrue(client.isFrequentUser());
+        verify(clientRepository).save(client);
+    }
 
+    @Test
+    @DisplayName("No marcar cliente como frecuente cuando tiene menos de 10 pedidos")
+    void doNotMarkClientAsFrequentWhenOrderCountIsBelow10() {
+        client.setFrequentUser(false);
+        when(orderRepository.countOrdersByClientId(client.getIdClient())).thenReturn(9L);
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(client));
+        when(orderRepository.save(any(OrderRestaurant.class))).thenReturn(order);
+
+        orderService.addOrder(order, client.getIdClient());
+
+        assertFalse(client.isFrequentUser());
+        verify(clientRepository, never()).save(client);
+    }
+
+    @Test
+    @DisplayName("No marcar cliente como frecuente si ya lo es")
+    void doNotMarkClientAsFrequentWhenAlreadyFrequent() {
+        client.setFrequentUser(true);
+        when(orderRepository.countOrdersByClientId(client.getIdClient())).thenReturn(15L);
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(client));
+        when(orderRepository.save(any(OrderRestaurant.class))).thenReturn(order);
+
+        orderService.addOrder(order, client.getIdClient());
+
+        assertTrue(client.isFrequentUser());
+        verify(clientRepository, never()).save(client);
+    }
+
+    @Test
+    @DisplayName("Agregar items a la orden si los items no son null")
+    void addItemsToOrderIfOrderItemsIsNotNull() {
+        OrderItem newItem = new OrderItem();
+        newItem.setIdOrderItem(1L);
+        newItem.setQuantity(2);
+
+        OrderRestaurant updatedOrder = new OrderRestaurant();
+        updatedOrder.setOrderItems(List.of(newItem));
+
+        OrderRestaurant existingOrder = new OrderRestaurant();
+        existingOrder.setOrderItems(new ArrayList<>());
+
+        orderService.getItems(updatedOrder, existingOrder);
+
+        assertEquals(1, existingOrder.getOrderItems().size());
+        assertEquals(newItem.getIdOrderItem(), existingOrder.getOrderItems().get(0).getIdOrderItem());
+    }
+
+    @Test
+    @DisplayName("No agregar items a la orden si los items son null")
+    void doNotAddItemsToOrderIfOrderItemsIsNull() {
+        OrderRestaurant updatedOrder = new OrderRestaurant();
+        updatedOrder.setOrderItems(null); // items son null
+
+        OrderRestaurant existingOrder = new OrderRestaurant();
+        existingOrder.setOrderItems(new ArrayList<>());
+
+        orderService.getItems(updatedOrder, existingOrder);
+        assertEquals(0, existingOrder.getOrderItems().size());
+    }
+
+    @Test
+    @DisplayName("Verificar que se agrega el patrón cuando no hay observadores")
+    void addPatternsWhenDishHasNoObservers() {
+        Dish dishWithoutObservers = new Dish();
+        dishWithoutObservers.setIdDish(1L);
+        dishWithoutObservers.setDishName("Plato Test");
+        dishWithoutObservers.setPrice(10.0);
+        dishWithoutObservers.setObservers(new ArrayList<>());
+
+        when(dishRepository.findById(anyLong())).thenReturn(Optional.of(dishWithoutObservers));
+        when(orderRepository.countOrdersByDishId(dishWithoutObservers.getIdDish())).thenReturn(100L);
+        orderService.addPatterns(dishWithoutObservers);
+
+        assertFalse(dishWithoutObservers.getObservers().isEmpty(), "El plato debe tener observadores");
+        assertEquals(1, dishWithoutObservers.getObservers().size(), "Debería tener solo un observador");
+
+        verify(dishRepository, times(1)).save(dishWithoutObservers);
+    }
+
+    @Test
+    @DisplayName("No agregar observador si el plato ya tiene observadores")
+    void doNotAddObserverIfDishHasObservers() {
+        dish.setObservers(List.of(new AdminNotifier()));
+        orderService.addPatterns(dish);
+
+        assertEquals(1, dish.getObservers().size());
+    }
 }

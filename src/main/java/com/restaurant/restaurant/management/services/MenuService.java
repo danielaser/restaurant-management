@@ -39,7 +39,7 @@ public class MenuService {
         return menuRepository.findById(id).map(existingMenu -> {
             existingMenu.setMenuName(menuUpdated.getMenuName());
             existingMenu.getDishes().clear();
-            if (menuUpdated.getDishes() != null) menuUpdated.getDishes().forEach(dish -> {
+            if ( !menuUpdated.getDishes().isEmpty()) menuUpdated.getDishes().forEach(dish -> {
                 dish.setMenu(existingMenu);
                 existingMenu.getDishes().add(dish);
             });
