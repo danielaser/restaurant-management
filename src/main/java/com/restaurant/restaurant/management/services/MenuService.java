@@ -95,7 +95,9 @@ public class MenuService {
     private void isDishExisting(Long idDish, Optional<Dish> dishOpt, AdminNotifier adminNotifier, Menu menu) {
         if (dishOpt.isPresent()) {
             Dish dish = dishOpt.get();
-            if (dish.getObservers().contains(adminNotifier)) dish.removeObserver(adminNotifier);
+            if (dish.getObservers().contains(adminNotifier)) {
+                dish.removeObserver(adminNotifier);
+            }
             menu.getDishes().removeIf(d -> d.getIdDish().equals(idDish));
             menuRepository.save(menu);
             dishRepository.delete(dish);

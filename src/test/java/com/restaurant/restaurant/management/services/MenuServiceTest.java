@@ -3,7 +3,6 @@ package com.restaurant.restaurant.management.services;
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
 import com.restaurant.restaurant.management.observer.AdminNotifier;
-import com.restaurant.restaurant.management.observer.DishObserver;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.MenuRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -333,5 +332,39 @@ class MenuServiceTest {
 
         assertNull(result);
         verify(menuRepository).findById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Eliminar un plato de un menu con AdminNotifier y sin el")
+    void removeDishFromMenuWithNotifier() {
+        AdminNotifier adminNotifier = new AdminNotifier();
+
+        Dish dishWithNotifier = new Dish();
+        dishWithNotifier.setIdDish(1L);
+        dishWithNotifier.addObserver(adminNotifier);
+
+        Menu menuWithNotifier = new Menu();
+        menuWithNotifier.setDishes(new ArrayList<>(List.of(dishWithNotifier)));
+
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(menuWithNotifier));
+        doNothing().when(dishRepository).delete(any(Dish.class));
+
+        menuService.removeDishFromMenu(1L, 1L);
+
+        verify(dishRepository).delete(any(Dish.class));
+        assertFalse(menuWithNotifier.getDishes().contains(dishWithNotifier));
+
+        Dish dishWithoutNotifier = new Dish();
+        dishWithoutNotifier.setIdDish(2L);
+
+        Menu menuWithoutNotifier = new Menu();
+        menuWithoutNotifier.setDishes(new ArrayList<>(List.of(dishWithoutNotifier)));
+
+        when(menuRepository.findById(2L)).thenReturn(Optional.of(menuWithoutNotifier));
+
+        menuService.removeDishFromMenu(2L, 2L);
+
+        verify(dishRepository, times(2)).delete(any(Dish.class));
+        assertFalse(menuWithoutNotifier.getDishes().contains(dishWithoutNotifier));
     }
 }
