@@ -350,7 +350,7 @@ class OrderControllerTest {
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expectBody(String.class)
-                .value(message -> assertNull(message)); // Verifica que el cuerpo sea nulo
+                .value(message -> assertNull(message));
 
         verify(orderService).addItemToOrder(anyLong(), any(OrderItem.class));
     }

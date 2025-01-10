@@ -99,8 +99,7 @@ public class OrderService {
             OrderRestaurant order = orderOpt.get();
             Optional<Dish> dishOpt = dishRepository.findById(orderItem.getIdDish());
             return isDishExisting(orderItem, dishOpt, order);
-        }
-        return null;
+        } else throw new RuntimeException("El pedido con id: " + idOrder + " no fue encontrado");
     }
 
     private OrderItem isDishExisting(OrderItem orderItem, Optional<Dish> dishOpt, OrderRestaurant order) {
