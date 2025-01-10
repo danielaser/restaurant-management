@@ -10,5 +10,8 @@ public class OrderItemResponseDto {
     private Long idOrderItem;
     private Long idDish;
     private Integer quantity;
+
+    public OrderItemResponseDto() {
+    }
 }
 

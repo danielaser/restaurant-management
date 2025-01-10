@@ -1,6 +1,10 @@
 package com.restaurant.restaurant.management.services;
 
+import com.restaurant.restaurant.management.chain.DishHandler;
+import com.restaurant.restaurant.management.chain.IncreasePriceHandler;
+import com.restaurant.restaurant.management.chain.PopularityHandler;
 import com.restaurant.restaurant.management.models.*;
+import com.restaurant.restaurant.management.observer.AdminNotifier;
 import com.restaurant.restaurant.management.repositories.ClientRepository;
 import com.restaurant.restaurant.management.repositories.DishRepository;
 import com.restaurant.restaurant.management.repositories.OrderItemRepository;
@@ -76,7 +80,7 @@ public class OrderService {
         }).orElseThrow(() -> new RuntimeException("El pedido con id: " + id + " no pudo ser actualizado"));
     }
 
-    private static void getItems(OrderRestaurant orderUpdated, OrderRestaurant existingOrder) {
+    public static void getItems(OrderRestaurant orderUpdated, OrderRestaurant existingOrder) {
         if (orderUpdated.getOrderItems() != null) {
             orderUpdated.getOrderItems().forEach(item -> {
                 item.setOrder(existingOrder);
@@ -91,27 +95,37 @@ public class OrderService {
 
     public OrderItem addItemToOrder(Long idOrder, OrderItem orderItem) {
         Optional<OrderRestaurant> orderOpt = orderRepository.findById(idOrder);
-        OrderItem savedItem = isPresentOrder(orderItem, orderOpt);
-        if (savedItem != null) return savedItem;
-        return null;
-    }
-
-    private OrderItem isPresentOrder(OrderItem orderItem, Optional<OrderRestaurant> orderOpt) {
         if (orderOpt.isPresent()) {
             OrderRestaurant order = orderOpt.get();
             Optional<Dish> dishOpt = dishRepository.findById(orderItem.getIdDish());
-            isPresentDish(orderItem, dishOpt);
+            return isDishExisting(orderItem, dishOpt, order);
+        } else throw new RuntimeException("El pedido con id: " + idOrder + " no fue encontrado");
+    }
+
+    private OrderItem isDishExisting(OrderItem orderItem, Optional<Dish> dishOpt, OrderRestaurant order) {
+        if (dishOpt.isPresent()) {
+            Dish dish = dishOpt.get();
+            addPatterns(dish);
+            orderItem.setDish(dish);
             orderItem.setOrder(order);
             OrderItem savedItem = orderItemRepository.save(orderItem);
             order.getOrderItems().add(savedItem);
             orderRepository.save(order);
             return savedItem;
-        } return null;
+        } else throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
     }
 
-    private static void isPresentDish(OrderItem orderItem, Optional<Dish> dishOpt) {
-        if (dishOpt.isPresent()) orderItem.setDish(dishOpt.get());
-        else throw new RuntimeException("Dish not found with id: " + orderItem.getIdDish());
+    public void addPatterns(Dish dish) {
+        if (dish.getObservers().isEmpty()) {
+            AdminNotifier adminNotifier = new AdminNotifier();
+            dish.addObserver(adminNotifier);
+        }
+        DishHandler popularityHandler = new PopularityHandler();
+        DishHandler increasePriceHandler = new IncreasePriceHandler();
+        popularityHandler.setNextHandler(increasePriceHandler);
+        long timesOrdered = orderRepository.countOrdersByDishId(dish.getIdDish());
+        popularityHandler.handle(dish, (int) timesOrdered);
+        dishRepository.save(dish);
     }
 
     public Optional<OrderItem> getOrderItemById(Long idOrderItem) {

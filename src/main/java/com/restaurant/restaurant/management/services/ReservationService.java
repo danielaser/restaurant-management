@@ -36,9 +36,7 @@ public class ReservationService {
         if (client.isPresent()) {
             reservation.setClient(client.get());
             return reservationRepository.save(reservation);
-        } else {
-            throw new RuntimeException("El cliente con ID: " + clientId + " no fue encontrado");
-        }
+        } else throw new RuntimeException("El cliente con id: " + clientId + " no fue encontrado");
     }
 
     public List<Reservation> getAllReservations() {
@@ -54,7 +52,7 @@ public class ReservationService {
             existingReservation.setDateTime(reservationUpdated.getDateTime());
             existingReservation.setNumberOfPeople(reservationUpdated.getNumberOfPeople());
             return reservationRepository.save(existingReservation);
-        }).orElseThrow(() -> new RuntimeException("Reserva con ID: " + id + " no encontrada"));
+        }).orElseThrow(() -> new RuntimeException("Reserva con id: " + id + " no se encontro"));
     }
 
     public void deleteReservation(Long id) {

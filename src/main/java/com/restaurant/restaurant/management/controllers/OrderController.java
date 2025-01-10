@@ -1,10 +1,10 @@
 package com.restaurant.restaurant.management.controllers;
 
+import com.restaurant.restaurant.management.dto.OrderItemResponseDto;
 import com.restaurant.restaurant.management.dto.OrderResponseDto;
 import com.restaurant.restaurant.management.dtoConverter.OrderItemMapper;
 import com.restaurant.restaurant.management.dtoConverter.OrderMapper;
 import com.restaurant.restaurant.management.models.*;
-import com.restaurant.restaurant.management.services.MenuService;
 import com.restaurant.restaurant.management.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,12 +20,10 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     private final OrderService orderService;
-    private final MenuService menuService;
 
     @Autowired
-    public OrderController(OrderService orderService, MenuService menuService) {
+    public OrderController(OrderService orderService) {
         this.orderService = orderService;
-        this.menuService = menuService;
     }
 
     @PostMapping("/{clientName}")
@@ -69,13 +67,16 @@ public class OrderController {
     }
 
     @PostMapping("/{idOrder}/orderItems")
-    public ResponseEntity<?> addOrderItem(@PathVariable Long idOrder, @RequestBody OrderItem orderItem) {
+    public ResponseEntity<OrderItemResponseDto> addOrderItem(@PathVariable Long idOrder, @RequestBody OrderItem orderItem) {
         try {
             OrderItem addedItem = orderService.addItemToOrder(idOrder, orderItem);
-            if (addedItem != null) return ResponseEntity.ok(addedItem);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El plato no existe o la orden no se encuentra.");
+            if (addedItem != null) {
+                OrderItemResponseDto responseDto = OrderItemMapper.toDto(addedItem);
+                return ResponseEntity.ok(responseDto);
+            } else return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al agregar el item al pedido: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 

@@ -14,4 +14,7 @@ public class ReservationResponseDto {
     private Integer numberOfPeople;
     private String clientName;
     private Double price;
+
+    public ReservationResponseDto() {
+    }
 }

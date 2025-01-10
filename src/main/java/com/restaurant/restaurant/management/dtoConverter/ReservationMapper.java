@@ -1,7 +1,6 @@
 package com.restaurant.restaurant.management.dtoConverter;
 
 import com.restaurant.restaurant.management.dto.ReservationResponseDto;
-import com.restaurant.restaurant.management.models.Client;
 import com.restaurant.restaurant.management.models.Reservation;
 
 public class ReservationMapper {

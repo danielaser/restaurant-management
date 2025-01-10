@@ -1,8 +1,5 @@
 package com.restaurant.restaurant.management.services;
 
-import com.restaurant.restaurant.management.chain.DiscountHandler;
-import com.restaurant.restaurant.management.chain.DishHandler;
-import com.restaurant.restaurant.management.chain.PopularityHandler;
 import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
 import com.restaurant.restaurant.management.observer.AdminNotifier;
@@ -42,7 +39,7 @@ public class MenuService {
         return menuRepository.findById(id).map(existingMenu -> {
             existingMenu.setMenuName(menuUpdated.getMenuName());
             existingMenu.getDishes().clear();
-            if (menuUpdated.getDishes() != null) menuUpdated.getDishes().forEach(dish -> {
+            if ( !menuUpdated.getDishes().isEmpty()) menuUpdated.getDishes().forEach(dish -> {
                 dish.setMenu(existingMenu);
                 existingMenu.getDishes().add(dish);
             });
@@ -59,21 +56,11 @@ public class MenuService {
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
             dish.setMenu(menu);
-            addPatterns(dish);
             Dish savedDish = dishRepository.save(dish);
             menu.getDishes().add(savedDish);
             menuRepository.save(menu);
             return savedDish;
         } return null;
-    }
-
-    private static void addPatterns(Dish dish) {
-        AdminNotifier adminNotifier = new AdminNotifier();
-        dish.addObserver(adminNotifier);
-        DishHandler popularityHandler = new PopularityHandler();
-        DishHandler discountHandler = new DiscountHandler();
-        popularityHandler.setNextHandler(discountHandler);
-        popularityHandler.handle(dish, 120);
     }
 
     public List<Dish> getAllDishesFromMenu(Long idMenu) {
@@ -93,11 +80,24 @@ public class MenuService {
     }
 
     public void removeDishFromMenu(Long idMenu, Long idDish) {
+        AdminNotifier adminNotifier = new AdminNotifier();
         Optional<Menu> menuOpt = menuRepository.findById(idMenu);
         if (menuOpt.isPresent()) {
             Menu menu = menuOpt.get();
-            menu.getDishes().removeIf(dish -> dish.getIdDish().equals(idDish));
+            Optional<Dish> dishOpt = menu.getDishes().stream()
+                    .filter(d -> d.getIdDish().equals(idDish))
+                    .findFirst();
+            isDishExisting(idDish, dishOpt, adminNotifier, menu);
+        }
+    }
+
+    private void isDishExisting(Long idDish, Optional<Dish> dishOpt, AdminNotifier adminNotifier, Menu menu) {
+        if (dishOpt.isPresent()) {
+            Dish dish = dishOpt.get();
+            if (dish.getObservers().contains(adminNotifier)) dish.removeObserver(adminNotifier);
+            menu.getDishes().removeIf(d -> d.getIdDish().equals(idDish));
             menuRepository.save(menu);
+            dishRepository.delete(dish);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.restaurant.restaurant.management.dtoConverter;
 
 import com.restaurant.restaurant.management.dto.MenuResponseDto;
+import com.restaurant.restaurant.management.models.Dish;
 import com.restaurant.restaurant.management.models.Menu;
 
 import java.util.stream.Collectors;
@@ -21,7 +22,11 @@ public class MenuMapper {
         menu.setIdMenu(dto.getIdMenu());
         menu.setMenuName(dto.getMenuName());
         menu.setDishes(dto.getDishes().stream()
-                .map(DishMapper::toEntity)
+                .map(dishDto -> {
+                    Dish dish = DishMapper.toEntity(dishDto);
+                    dish.setMenu(menu);
+                    return dish;
+                })
                 .collect(Collectors.toList()));
         return menu;
     }

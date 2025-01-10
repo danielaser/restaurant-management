@@ -8,6 +8,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OrderRepository extends JpaRepository<OrderRestaurant, Long> {
+
+    @Query("SELECT COUNT(o) FROM OrderRestaurant o JOIN o.orderItems oi WHERE oi.dish.idDish = :dishId")
+    long countOrdersByDishId(@Param("dishId") Long dishId);
+
     @Query("SELECT COUNT(o) FROM OrderRestaurant o WHERE o.client.idClient = :clientId")
     long countOrdersByClientId(@Param("clientId") Long clientId);
+
 }
