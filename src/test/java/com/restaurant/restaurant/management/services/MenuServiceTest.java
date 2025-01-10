@@ -335,7 +335,7 @@ class MenuServiceTest {
     }
 
     @Test
-    @DisplayName("Eliminar un plato de un menu con AdminNotifier y sin el")
+    @DisplayName("Eliminar un plato de un menu con AdminNotifier")
     void removeDishFromMenuWithNotifier() {
         AdminNotifier adminNotifier = new AdminNotifier();
 
@@ -367,4 +367,5 @@ class MenuServiceTest {
         verify(dishRepository, times(2)).delete(any(Dish.class));
         assertFalse(menuWithoutNotifier.getDishes().contains(dishWithoutNotifier));
     }
+
 }

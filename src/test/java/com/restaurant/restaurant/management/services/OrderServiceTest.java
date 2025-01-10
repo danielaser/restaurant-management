@@ -383,7 +383,7 @@ class OrderServiceTest {
     @DisplayName("No agregar items a la orden si los items son null")
     void doNotAddItemsToOrderIfOrderItemsIsNull() {
         OrderRestaurant updatedOrder = new OrderRestaurant();
-        updatedOrder.setOrderItems(null); // items son null
+        updatedOrder.setOrderItems(null);
 
         OrderRestaurant existingOrder = new OrderRestaurant();
         existingOrder.setOrderItems(new ArrayList<>());
